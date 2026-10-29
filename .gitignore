@@ -1,0 +1,11 @@
+node_modules
+.env*
+!.env.example
+.turbo
+.next
+.open-next
+.wrangler
+dist
+.DS_Store
+spikes/**/node_modules
+spikes/**/.env*
