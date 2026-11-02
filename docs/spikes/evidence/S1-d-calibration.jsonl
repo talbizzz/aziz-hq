@@ -1,0 +1,6 @@
+{"label": "c0-baseline", "five_hour": 0.02, "seven_day": 0.1, "input": 2, "cache_create": 14559, "cache_read": 23485, "output": 4, "cost_usd": 0.060753}
+{"label": "c1-5kb", "five_hour": 0.03, "seven_day": 0.1, "input": 2, "cache_create": 16447, "cache_read": 23485, "output": 85, "cost_usd": 0.0693061}
+{"label": "c2-15kb", "five_hour": 0.03, "seven_day": 0.1, "input": 2, "cache_create": 16790, "cache_read": 23485, "output": 365, "cost_usd": 0.0735126}
+{"label": "c3-out2k", "five_hour": 0.04, "seven_day": 0.1, "input": 2, "cache_create": 14572, "cache_read": 23485, "output": 3291, "cost_usd": 0.09367610000000001}
+{"label": "c4-35kb", "five_hour": 0.04, "seven_day": 0.1, "input": 2, "cache_create": 25100, "cache_read": 23485, "output": 494, "cost_usd": 0.1088739}
+{"label": "c5-final", "five_hour": 0.04, "seven_day": 0.1, "input": 2, "cache_create": 13868, "cache_read": 24181, "output": 4, "cost_usd": 0.0580586}
