@@ -1,0 +1,2 @@
+rl {'five_hour': 0.05, 'seven_day': 0.1}
+result OK False
