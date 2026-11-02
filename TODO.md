@@ -2,7 +2,7 @@
 
 ## Milestone 0: Spikes
 
-- [ ] T0.1 — Initialise git repo and private GitHub remote
+- [x] T0.1 — Initialise git repo and private GitHub remote
 - [ ] T0.2 — Spike S1: does headless `claude -p` expose usage / rate limits?
 - [ ] T0.3 — Spike S5: behaviour when a plan limit is hit mid-task
 - [ ] T0.4 — Spike S2: per-task Docker sandbox running `supabase start`
