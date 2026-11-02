@@ -1,0 +1,3 @@
+# DOCUMENTED fixture (not captured). is_error:true with subtype success and exit 0 (community bug report claudeissues.com/79500).
+# exit=0
+{"type":"result","subtype":"success","is_error":true,"result":"You've hit your session limit · resets 6:30pm","session_id":"<redacted>"}

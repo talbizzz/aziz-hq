@@ -1,0 +1,2 @@
+# DOCUMENTED fixture: SIGTERM -> exit 143, no result recorded (headless docs).
+# exit=143
