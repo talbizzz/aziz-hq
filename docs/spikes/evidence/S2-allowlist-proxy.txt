@@ -1,0 +1,10 @@
+https://github.com -> proxy: 200
+https://registry.npmjs.org/supabase -> proxy: 200
+https://api.anthropic.com -> proxy: 404
+https://example.com -> proxy: 000
+blocked/failed
+https://google.com -> proxy: 000
+blocked/failed
+direct (no proxy):
+000
+no direct egress (curl exit 6)

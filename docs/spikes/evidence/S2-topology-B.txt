@@ -1,0 +1,18 @@
+B start s: 488
+Stopped services: [supabase_inbucket_b0 supabase_imgproxy_b0 supabase_studio_b0 supabase_edge_runtime_b0 supabase_analytics_b0 supabase_vector_b0 supabase_pooler_b0]
+supabase local development setup is running.
+
+STATUS_OK
+All tests successful.
+Files=1, Tests=1,  0 wallclock secs ( 0.01 usr +  0.00 sys =  0.01 CPU)
+Result: PASS
+s2-b-dind 1.302GiB / 4GiB
+s2-b-sbx 1.301MiB / 4.789GiB
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          8         7         4.635GB   78.07MB (1%)
+Containers      7         7         270.3kB   0B (0%)
+Stopping containers...
+Stopped supabase local development setup.
+0
+0
+total s: 521

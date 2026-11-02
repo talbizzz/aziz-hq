@@ -9,3 +9,4 @@ dist
 .DS_Store
 spikes/**/node_modules
 spikes/**/.env*
+spikes/s2/work

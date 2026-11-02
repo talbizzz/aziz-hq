@@ -1,0 +1,12 @@
+PASS slot0 supabase status
+PASS slot0 supabase test db
+PASS slot0 git push
+PASS slot1 supabase status
+PASS slot1 supabase test db
+PASS slot1 git push
+PASS slot2 supabase status
+PASS slot2 supabase test db
+PASS slot2 git push
+PASS no containers left
+PASS no volumes left
+PASS no supabase networks left

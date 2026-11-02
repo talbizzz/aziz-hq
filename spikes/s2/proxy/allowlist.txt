@@ -1,0 +1,5 @@
+^(.+\.)?github\.com$
+^(.+\.)?githubusercontent\.com$
+^registry\.npmjs\.org$
+^(.+\.)?anthropic\.com$
+^public\.ecr\.aws$
