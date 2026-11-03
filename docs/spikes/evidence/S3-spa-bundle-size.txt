@@ -1,0 +1,5 @@
+# S3 (Vite SPA on Pages) sizes, 2026-11-03
+vite 8.3.5 react-router-dom 7.18.5 @supabase/supabase-js 2.118.0 jose 6.2.15 grammy 1.46.0 wrangler 4.156.1 node v24.9.0
+SPA: dist/assets js 476.5 kB raw / 137.6 kB gzip (see S3-spa-build.txt)
+Pages Functions bundle (_middleware + ping + telegram webhook with grammy/web + jose): raw   219434 bytes, gzip    46054 bytes
+Workers Free limit: 3 MB gzip. OpenNext comparison variant: 1.36 MB gzip (S3-opennext-bundle-size.txt)

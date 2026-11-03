@@ -1,0 +1,29 @@
+{
+  "name": "s3-spike",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "next build",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare preview",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "1.20.15",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
+    "grammy": "^1.46.0",
+    "jose": "^6.2.15",
+    "next": "^16.4.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "otplib": "^13.6.0",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.156.1"
+  }
+}

@@ -1,0 +1,1 @@
+{ "imports": { "grammy/web": "npm:grammy@1.46.0/web" } }

@@ -1,0 +1,5 @@
+cold start to first response (incl. deno npm resolution, warm cache): 68 ms; first status (no secret): 401
+PASS no secret -> 401
+PASS wrong secret -> 401
+[tg] ignored callback from user=999 chat=999
+PASS foreign chat -> 200, no telegram call

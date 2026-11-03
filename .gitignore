@@ -16,3 +16,6 @@ spikes/**/.test-key.json
 spikes/**/.open-next
 spikes/**/.next
 spikes/**/test-results
+
+spikes/**/.access-jwks.json
+spikes/**/dist
