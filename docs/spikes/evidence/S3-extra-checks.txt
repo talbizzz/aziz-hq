@@ -1,0 +1,6 @@
+aal1 select rows: 0 error: null
+verify error: null
+aal2 select rows: 6
+browser websockets: [
+  'ws://127.0.0.1:54321/realtime/v1/websocket?apikey=<redacted>&vsn=2.0.0'
+]

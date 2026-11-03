@@ -1,0 +1,10 @@
+# S3 bundle size (2026-11-03)
+next 16.4.3 @opennextjs/cloudflare 1.20.15 wrangler 4.156.1 node v24.9.0
+worker.js raw bytes:  5509821
+worker.js gzip bytes:  1127666
+wrangler dry-run: Total Upload 5380.68 KiB / gzip: 1111.99 KiB (includes 18 static assets)
+Workers Free limit: 3 MB gzipped
+
+## with Node proxy.ts (experimental in OpenNext)
+worker.js raw:  6460165 gzip:  1334191
+Total Upload: 6308.75 KiB / gzip: 1315.33 KiB

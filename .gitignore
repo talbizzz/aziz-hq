@@ -10,3 +10,9 @@ dist
 spikes/**/node_modules
 spikes/**/.env*
 spikes/s2/work
+
+spikes/**/.dev.vars
+spikes/**/.test-key.json
+spikes/**/.open-next
+spikes/**/.next
+spikes/**/test-results
