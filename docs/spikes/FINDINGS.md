@@ -1,6 +1,8 @@
 # Spike Findings (Milestone 0)
 
-Versions: `claude` 2.1.312 (more added per spike).
+Versions: `claude` 2.1.312; Colima 0.10.3 (Docker server 29.5.2; Docker CLI 29.8.1; macOS host, 8 GiB RAM); Supabase CLI 2.109.1 (host) / 3.0.0 (sandbox image); Node 22.23.4 (sandbox) / 24.9.0 (host); pnpm 11.21.0; vite 8.3.5; @supabase/supabase-js 2.118.0; wrangler 4.156.1; jose 6.2.15; grammy 1.46.0; Deno 2.9.6; next 16.4.3 and @opennextjs/cloudflare 1.20.15 (comparison variant only). Spike run date: 2026-11-02/03.
+
+**Go / no-go:** GO with conditions; see "Spike Outcomes and Go / No-Go" in Project-Plan.md. Aziz has not yet approved.
 
 | Spike | Question | Verdict |
 |---|---|---|
@@ -98,3 +100,7 @@ Versions: `claude` 2.1.312 (more added per spike).
 
 - **Decision for the plan (ADR-5, picks one as the spike requires):** use the **Supabase Edge Function** for the webhook. Reason: it keeps the service-role key inside Supabase and removes the Cloudflare Access bypass, the single most security-sensitive configuration. Shared code stays in `packages/core` (secret check, owner check, callback parse, decision logic with an injected store; `grammy/web`). The Pages Function variant is proven and is the documented fallback if the hosted Edge Function misbehaves; the dashboard middleware then skips only `/api/telegram/webhook` as tested. Aziz confirms this pick at the M0 go/no-go.
 - **Open follow-ups (need Aziz):** create the bot; deploy the function to the hosted project with `verify_jwt = false`; run `setWebhook` (`secret_token`, `allowed_updates=["callback_query","message"]`); measure real latency and cold start; confirm Telegram reaches it. Owner: M3 (Telegram buttons), after M1 T1.9 creates the hosted project.
+
+## Spike resources cleanup
+- No Cloudflare resources were created (no Worker/Pages project, DNS record, Access app) and no Telegram bot or webhook exists: nothing to delete. Reuse for M1/M3: `spikes/s3` (SPA + Pages Functions + Playwright checks) is the template for T1.10/T1.11 smoke tests; `spikes/s4/webhook.ts` is the starting point for the M3 handler.
+- Local only: Colima profile `s2` (stopped, kept; delete with `colima delete s2` to free ~1 GB of disk), spike `node_modules` and build output deleted, local Supabase stacks stopped with `--no-backup`.

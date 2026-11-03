@@ -1,5 +1,7 @@
 # Milestone 0: Spikes
 
+> **Execution note (2026-11-03):** executed up to the limits of what could be verified without Aziz's accounts. Local phases of S3/S4 and all of S1/S2 are done; S5 is documentation-based (live test declined); Cloudflare and Telegram live checks are deferred to M1 T1.11 / M3 (see FINDINGS and Project-Plan Open Risks 5, 7, 8). The milestone is **not complete** until Aziz approves go / no-go.
+
 ## Goal
 
 Replace every risky assumption in Project-Raw.md "Risks & Open Questions" with measured evidence, recorded in `docs/spikes/FINDINGS.md`, before any product code is written.
@@ -139,10 +141,10 @@ Local only, never committed (names/purpose):
 ## Done Criteria
 
 - [ ] Every task's "Done when" met
-- [ ] `docs/spikes/FINDINGS.md` has S1–S5 with verdicts; `scripts/check-findings.mjs` passes
-- [ ] Project-Plan.md amended wherever a verdict differs from CONFIRMED
-- [ ] No secrets in the repo (`git log -p` grep for token patterns is clean)
-- [ ] Spike resources cleaned: throwaway Pages project, DNS record `spike-hq`, Access app, Telegram webhook either deleted or documented for reuse in M1/M3 (state which in FINDINGS)
+- [x] `docs/spikes/FINDINGS.md` has S1–S5 with verdicts; `scripts/check-findings.mjs` passes
+- [x] Project-Plan.md amended wherever a verdict differs from CONFIRMED
+- [x] No secrets in the repo (`git log -p` grep for token patterns is clean)
+- [x] Spike resources cleaned (none were created on Cloudflare/Telegram; see FINDINGS): throwaway Pages project, DNS record `spike-hq`, Access app, Telegram webhook either deleted or documented for reuse in M1/M3 (state which in FINDINGS)
 - [ ] Aziz has approved go / no-go
 
 ## Risks & Watch-Outs

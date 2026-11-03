@@ -142,6 +142,8 @@ Test IDs (`data-testid`): `login-email`, `login-password`, `login-submit`, `mfa-
 
 ### T1.5 — Core schema (declarative) with pgTAP tests
 
+> **Plan updated (M0 findings, 2026-11-03):** on the current Supabase version new `public` tables get no default grants for API roles; every table needs explicit `GRANT` statements (C2 already lists them; add a pgTAP assertion per table that `authenticated` has only the intended privileges and `anon` has none). `sb_secret_`/`sb_publishable_` keys are not JWTs: scripts send them as `apikey` only.
+
 - **Depends on:** T1.4
 - **Area:** database
 - **What:** Implement C1 and C2 in `supabase/schemas/00_types.sql`, `10_tables.sql` (one file per concern, numeric prefixes keep ordering), plus `supabase/seed.sql`. Generate the first migration with `pnpm db:diff -- initial_core_schema`. Add C5 as a hand-written migration (timestamped after the generated one) and list it in `docs/MANUAL_MIGRATIONS.md` with reason ("publication membership is not tracked by the diff tool; DML seed").
@@ -182,6 +184,8 @@ Test IDs (`data-testid`): `login-email`, `login-password`, `login-submit`, `mfa-
 
 ### T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
 
+> **Plan updated (M0 findings, 2026-11-03):** (1) the MFA page must remove stale *unverified* TOTP factors before `mfa.enroll` (else `mfa_factor_name_conflict` on a second visit) and pass a unique `friendlyName`. (2) Realtime: call `supabase.realtime.setAuth(access_token)` before subscribing, and refetch the affected queries after `SUBSCRIBED` plus a moment (rows inserted between `SUBSCRIBED` and the active `postgres_changes` subscription are lost). (3) `_middleware.ts` uses an explicit `ENVIRONMENT` var (not `NODE_ENV`): unset Access vars + `ENVIRONMENT != 'development'` -> 500. (4) e2e: wrap TOTP generation with `otplib` 13 (`generate({secret})`).
+
 - **Depends on:** T1.6, T1.8
 - **Area:** web
 - **What:** Create `apps/web` (Vite + React Router, TypeScript, Tailwind, shadcn/ui init, versions per FINDINGS S3). `packages/ui` exports design tokens (`src/tokens.ts`: color, spacing, radius, font as a TS object) and a script generating CSS variables consumed by Tailwind (`pnpm tokens:build`; CI verifies generated file is up to date with `git diff --exit-code`). Keep the neutral shadcn base; app style is low-variance, low–medium motion. Implement C7: `supabase-js` client (`src/lib/supabase.ts`, reads `VITE_*`), `AuthProvider` + `RequireAal2` route guard (session → `getAuthenticatorAssuranceLevel()` → redirects per C7, via a pure `decideRoute` function). Pages Functions in `apps/web/functions/`: `_middleware.ts` (Access JWT check via `jose`, ADR-10; skips `/api/telegram/webhook` once it exists in M3), `api/health.ts`; `public/_routes.json` including `/*`; `public/_redirects` SPA fallback. TanStack Query provider set up (no queries yet). `.env.example` additions. All UI strings in English.
@@ -192,6 +196,8 @@ Test IDs (`data-testid`): `login-email`, `login-password`, `login-submit`, `mfa-
 - **Done when:** unit + e2e tests pass locally and in CI (add a `web` CI job that runs Playwright against local Supabase; cache browsers).
 
 ### T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access
+
+> **Plan updated (M0 findings, 2026-11-03):** S3 could not run its Cloudflare phase (no credentials). This task now also owns it: confirm `aziztalbi.com` is a Cloudflare zone, then verify on the live deployment the Access redirect, a real `Cf-Access-Jwt-Assertion` against the team JWKS and AUD, `pages.dev`/preview URLs rejected, and Workers Free CPU per request (10 ms). Pages config verified locally: `compatibility_flags ["nodejs_compat"]`, `vars.ENVIRONMENT=production`, `_routes.json` includes `/*`, `_redirects` SPA fallback. Functions bundle measured at 46 kB gzip (limit 3 MB); keep the size gate at that scale.
 
 - **Depends on:** T1.9, T1.10
 - **Area:** infra

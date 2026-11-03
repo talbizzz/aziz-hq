@@ -2,6 +2,8 @@
 
 > Stub — detail with project-plan before starting.
 
+> **Plan updated:** ADR-5 now specifies a **Supabase Edge Function** webhook (`verify_jwt = false`, grammY on `grammy/web`, secret token + owner chat id, `UNIQUE(gate_id)` decision table, callback data `g:<32hex>:<a|m|d>`); the Pages Function with an Access bypass is the proven fallback. This replaces the "Pages Function with Cloudflare Access bypass ... or Supabase Edge Function" scope line below (2026-11-03). Live items to verify here: hosted Edge Function, real `setWebhook`, Telegram reachability, latency, cold start.
+
 ## Goal
 
 Aziz approves a fake gate from his phone and the run continues.

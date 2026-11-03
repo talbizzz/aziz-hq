@@ -2,6 +2,8 @@
 
 > Stub — detail with project-plan before starting.
 
+> **Plan updated:** M0 findings for this milestone (2026-11-03). (1) Usage source: run `claude -p --output-format stream-json --verbose` and read the `rate_limit_event` (`unifiedWindows.five_hour|seven_day.utilization`, `resetsAt`); fallback `total_cost_usd`. (2) Limit detection: `classifyClaudeFailure` from `spikes/s5/detect.ts` (exit code is not trusted; `is_error:true` with exit 0 is possible); pause until `resetsAt` or 30 min; reset the task worktree before retry; replace the documented fixtures with a live capture. (3) Sandbox = design A-prime (worker starts a slim Supabase stack per task, ports +100 per slot, `docker update` limits, agent container without `docker.sock`, egress allowlist proxy, `docker rm -v`); 2 parallel tasks, 3 max on netcup. (4) Pin the Supabase CLI version in the worker image (host 2.109.1 vs npm 3.0.0 pull different images). (5) Use `CLAUDE_CONFIG_DIR` for the worker login; quota is per account, not per directory. Open: peak RAM under load, minimum limits, GitHub push credential.
+
 ## Goal
 
 A real agent completes a small coding task in a sandbox and respects limits and overrides.

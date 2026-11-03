@@ -49,12 +49,16 @@ Everything below is fixed by Project-Raw.md and is **not re-decided** here. See 
 - **Decision:** `tasks`, `runs`, `gates`, `events`, `worker_heartbeats` are added to the `supabase_realtime` publication (manual migration, listed in `docs/MANUAL_MIGRATIONS.md`). The browser subscribes with the user JWT; RLS applies. Subscriptions trigger TanStack Query invalidation.
 - **Why:** Meets "within a few seconds" with no extra infrastructure; free tier supports it.
 - **Rejected:** Polling (wasteful, laggy). Custom WebSocket server (new moving part).
+- > **Plan updated:** Spike S3 found `SUBSCRIBED` fires before `postgres_changes` is active, so rows inserted in that gap are never delivered. After subscribing, the dashboard must refetch the affected queries; set the Realtime token (`realtime.setAuth`) before subscribing. RLS with `aal = 'aal2'` is honoured by Realtime (S3). (2026-11-03)
 
-### ADR-5: Telegram webhook lives in a Cloudflare Pages Function
+### ADR-5: Telegram webhook is a Supabase Edge Function
 
-- **Decision:** `POST /api/telegram/webhook` as a Pages Function (`apps/web/functions/api/telegram/webhook.ts`), implemented with grammY (`webhookCallback`, Cloudflare adapter). Cloudflare Access bypass policy applies to **that exact path only**. Authentication on that path: Telegram `secret_token` header must match, and `from.id`/`chat.id` must equal the configured owner chat ID; anything else returns 200 with no action and logs an event. Gate callbacks go through the same `resolve_gate` RPC logic via a server-side function using the service role, with idempotency (a decided gate ignores repeat presses). **Contingent on spike S4**, which also compares this against a Supabase Edge Function webhook (keeps the service-role key inside Supabase, needs no Access bypass); S4 picks one. If both fail, fall back to the worker long-polling Telegram.
-- **Why:** Gates must be answerable when the laptop is off; the webhook needs a public endpoint, and the Pages project already exposes Functions.
-- **Rejected:** Worker long-polling as primary (dead when worker is offline). Separate Telegram Worker (extra deploy unit); Edge Function stays a candidate until S4.
+> **Plan updated:** Spike S4 compared a Pages Function with a Supabase Edge Function; both work against a mock Telegram API. Aziz-approval pending at the M0 go/no-go. The webhook moves to a **Supabase Edge Function** (previously a Pages Function). Reason: the service-role key stays inside Supabase and **no Cloudflare Access bypass is needed**. (2026-11-03)
+
+- **Decision:** `telegram` Supabase Edge Function (Deno), deployed with `verify_jwt = false` (Telegram cannot send a Supabase JWT), implemented with grammY on `grammy/web` (`webhookCallback(bot, "std/http", { secretToken })`, `botInfo` preset to skip `getMe`). Authentication: Telegram `secret_token` header must match (else 401, no side effect), and `from.id` **and** `chat.id` must equal the configured owner chat ID (else 200, no action, logged). Callback data is `g:<32-hex gate uuid>:<a|m|d>` (36 bytes of the 64 allowed). Idempotency: a decision table with `UNIQUE(gate_id)` using `insert ... on conflict (gate_id) do nothing returning decision`; a repeat press answers "Already decided". Gate callbacks call the same decision logic as the `resolve_gate` RPC server-side with the function's service-role key. Shared logic lives in `packages/core` (injected decision store). **Fallback (proven locally in S3/S4):** the same handler as a Pages Function (`functions/api/telegram/webhook.ts`) with a Cloudflare Access bypass for that exact path only; the dashboard middleware skips only that path. If both fail, the worker long-polls Telegram.
+- **Why:** Gates must be answerable when the laptop is off; a public endpoint is required. The Edge Function avoids storing the service-role key at Cloudflare and removes the one Access bypass hole.
+- **Rejected:** Worker long-polling as primary (dead when worker is offline). Separate Telegram Worker (extra deploy unit). Pages Function as primary (key at Cloudflare, Access bypass to get right).
+- **Unverified (needs live accounts):** hosted Edge Function deployment, hosted cold start, real `setWebhook` and Telegram reachability, real press-to-edit latency (owner: M3).
 
 ### ADR-6: Platform repo is trunk-based with one hosted environment
 
@@ -83,7 +87,8 @@ Everything below is fixed by Project-Raw.md and is **not re-decided** here. See 
 
 ### ADR-10: Cloudflare Access verified again inside the app, fail-closed
 
-- **Decision:** A Pages Functions middleware (`functions/_middleware.ts`, with `_routes.json` including `/*` so static assets are covered) verifies the `Cf-Access-Jwt-Assertion` header (JWKS from `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`, audience = Access app AUD, via `jose`) on every route except `/api/telegram/webhook`. If `CF_ACCESS_TEAM_DOMAIN`/`CF_ACCESS_AUD` are unset: allowed only when `NODE_ENV !== 'production'`; in production the middleware returns 500 for every request (fail closed).
+- **Decision:** A Pages Functions middleware (`functions/_middleware.ts`, with `_routes.json` including `/*` so static assets are covered) verifies the `Cf-Access-Jwt-Assertion` header (JWKS from `https://<team>.cloudflareaccess.com/cdn-cgi/access/certs`, audience = Access app AUD, via `jose`) on every route except `/api/telegram/webhook`. If `CF_ACCESS_TEAM_DOMAIN`/`CF_ACCESS_AUD` are unset: allowed only when the explicit var `ENVIRONMENT === 'development'` (the Workers runtime has no `NODE_ENV`; `wrangler.jsonc` sets `ENVIRONMENT=production`, local dev overrides it); otherwise the middleware returns 500 for every request (fail closed).
+- > **Plan updated:** S3 verified (local workerd) that with `_routes.json` including `/*` the middleware covers static assets and SPA-fallback routes, rejects missing, garbage, wrong-audience and expired tokens (403) and fails closed (500); `NODE_ENV` replaced by `ENVIRONMENT` (2026-11-03). If Telegram moves to the Edge Function (ADR-5) the webhook skip in the middleware becomes unnecessary but is harmless.
 - **Why:** Defense in depth if an Access policy is edited wrongly or the site is reachable via `<project>.pages.dev` or a preview URL. Also restrict/disable `pages.dev` previews (Pages setting "Access policy for previews" or no preview deployments).
 - **Rejected:** Trusting Access alone.
 
@@ -98,6 +103,7 @@ Everything below is fixed by Project-Raw.md and is **not re-decided** here. See 
 - **Decision:** `apps/web` is Vite + React Router + TypeScript + Tailwind + shadcn/ui + TanStack Query, deployed to **Cloudflare Pages** by `wrangler pages deploy` from GitHub Actions, with Pages Functions for the three server-side bits (Access JWT middleware, `/api/health`, Telegram webhook). Source: Aziz, 2026-10-29. Spike S3 may **reverse** this only if it finds a blocker (Access + Pages Functions, Supabase Auth MFA in an SPA, Functions limits); the default is the SPA.
 - **Why:** The dashboard is behind login, needs no SEO, and talks to Supabase directly; Next.js adds an adapter (OpenNext), a Workers runtime surface and bundle limits for no benefit. It also matches the golden-path product app, so tokens, shadcn setup, tests and Playwright config are reused in M5.
 - **Rejected:** Next.js + OpenNext on Workers (original Project-Raw.md decision) — heavier, more runtime risk. Keep as the S3 fallback.
+- > **Plan updated:** Spike S3 **confirmed** ADR-12 locally: SPA 138 kB gzip, Functions bundle 46 kB gzip (OpenNext variant: 1.13-1.36 MB), login + forced MFA + aal2 + Realtime + session persistence (refresh, second tab, sign-out) all pass; no blocker found. The Cloudflare-side checks (deploy, Access, real JWKS, Free CPU) remain unverified and move to M1 T1.11 (2026-11-03). OpenNext variant kept in `spikes/s3-opennext/` as a fallback only.
 - **Consequences:** env vars are `VITE_*`; no server-side session (supabase-js stores the session in the browser); route guarding is client-side UX, security is Access + RLS (ADR-1, ADR-10); `NEXT_PUBLIC_*` names in earlier drafts become `VITE_*`.
 
 ## Architecture Overview
@@ -155,21 +161,33 @@ aziz-hq/
 | # | Risk | Mitigation | Where |
 |---|---|---|---|
 | 1 | Platform becomes the project | Fixed milestone order; FakeRunner (M2) finishes plumbing without agent cost; `docs/parking-lot.md` rule in CLAUDE.md (out-of-scope ideas are parked, not built); backups/extras only when first needed (ADR-3, ADR-7); M8 forces a real run | M1 T1.1; M2; M8; ADR-3/7 |
-| 2 | `claude -p` doesn't expose usage % | Spike S1 decides primary source; fallback = own token tracking calibrated vs `/usage` + limit-error detection + sleeping-hours scheduling | M0 T0.2; M4 stub |
+| 2 | `claude -p` doesn't expose usage % | **Outcome (S1, 2026-11-03):** it does, in `--output-format stream-json --verbose`: a `rate_limit_event` with `five_hour`/`seven_day` `utilization` and `resetsAt` (matches `/usage` within 1 pp). Primary source = that event; fallback = `total_cost_usd` estimate + limit-error detection (S5 classifier) + sleeping-hours scheduling. `CLAUDE_CONFIG_DIR` isolates login/sessions but not quota | M0 T0.2; M4 stub |
 | 3 | Pro limits too tight | Runner interface lets Max/API swap in; measurements recorded | M2 (interface), M4 (measure), M8 (measure) |
 | 4 | Plausible-but-wrong code | Separate test agent, protected tests, QA vs spec, reviewer, milestone review gate | M4 (test protection check), M6, M7 |
 | 5 | Agent loops burn usage | Loop guards, no-progress detection, timeouts, orchestrator → gate | M4 stub |
 | 6 | Secret leak / agent touches prod | Access + MFA + RLS aal2 + in-app Access JWT check; gitleaks pre-commit + CI on platform repo; sandbox env scoping; Infisical | M0 T0.5; M1 T1.1, T1.5, T1.10, T1.11; M4; M8 |
-| 7 | Sandbox can't run local Supabase | Spike S2 on macOS (concurrency, ports, RAM); Linux/VPS leg re-verified at M8 start before first real run; fallback shared local Supabase per project on worker host | M0 T0.4; M8 stub |
+| 7 | Sandbox can't run local Supabase | **Outcome (S2, 2026-11-03):** works on macOS/Colima. Chosen design A-prime: worker starts a slim per-task stack (ports +100 per slot, unique `project_id`), the agent container has **no `docker.sock`**, joins the stack network, egress via an allowlisting proxy, limits via `docker update`; ~750 MiB per stack, 2 parallel tasks (3 max) on the netcup box. Linux/VPS leg re-verified at M8 start; fallback = DinD with a pre-baked image, then shared local Supabase per project | M0 T0.4; M4 stub; M8 stub |
 | 8 | Supabase free-tier limits | Keepalive in M1; nightly dump + restore test in M4; local Supabase for builds; project-count check before creating the platform project | M1 T1.9, T1.12; M4 |
-| 9 | Dashboard hosting/runtime incompatibilities | SPA on Pages (ADR-12) keeps server code to a few Functions; spike S3 confirms (Functions limits, Access, Auth MFA); heavy work in worker | M0 T0.5; M1 T1.11 |
+| 9 | Dashboard hosting/runtime incompatibilities | **Outcome (S3, 2026-11-03):** ADR-12 confirmed locally (Functions 46 kB gzip, middleware covers static assets, fail closed, MFA/Realtime fine). Cloudflare-side behaviour (Access, real JWKS, Free CPU) UNVERIFIED until M1 T1.11; OpenNext variant is a proven fallback | M0 T0.5; M1 T1.11 |
 | 10 | Notification fatigue | Priority levels, daily digest, inline buttons, quiet hours except critical | M3 stub (`gates.priority` column exists from M1) |
+
+## Spike Outcomes and Go / No-Go (M0, 2026-11-03)
+
+| Spike | Verdict | Effect on the plan |
+|---|---|---|
+| S1 usage in headless `claude -p` | CONFIRMED WITH CHANGES | usage policy reads `rate_limit_event` from `stream-json`; cost-based fallback |
+| S5 behaviour at plan limit | CONFIRMED WITH CHANGES (docs only, live test declined) | classifier + pause-until-`resetsAt`; live capture owed before M8 |
+| S2 sandbox with local Supabase | CONFIRMED WITH CHANGES | A-prime design (no docker.sock in agent container); 2-3 parallel tasks on netcup |
+| S3 SPA on Pages + MFA + Access | CONFIRMED WITH CHANGES (local only) | ADR-12 stands; ADR-10 uses `ENVIRONMENT`; Cloudflare-side checks move to M1 T1.11 |
+| S4 Telegram webhook | CONFIRMED WITH CHANGES (mock API only) | ADR-5 now an Edge Function; Pages Function proven as fallback |
+
+**Go / no-go recommendation: GO**, with conditions. No blocker was found: usage is observable, the sandbox design works, the dashboard stack is small (46 kB Functions) and the webhook is secure and idempotent. The conditions are the unverified live-account items (Risk 8), the live limit capture (Risk 5) and Aziz's approval of the ADR-5 change. Effect on M4: no usage-estimation fallback is needed for the normal path; M4 builds the runner on `stream-json`. **Aziz has not yet approved this summary.**
 
 ## Milestones
 
 | #   | Name            | Goal                                                                          | Depends on | Status   |
 | --- | --------------- | ----------------------------------------------------------------------------- | ---------- | -------- |
-| 0   | Spikes          | Confirm or replace every risky assumption with evidence                       | —          | Detailed |
+| 0   | Spikes          | Confirm or replace every risky assumption with evidence                       | —          | Executed locally; awaiting Aziz go/no-go and the live-account checks |
 | 1   | Foundation      | Monorepo, platform Supabase, core schema, CI, empty dashboard live behind Access | 0          | Detailed |
 | 2   | Engine          | Scheduler, task graph, leases, retries, gates, FakeRunner, local worker       | 1          | Stub     |
 | 3   | Human-Loop      | Gates inbox, Telegram buttons, overrides, daily digest                        | 2          | Stub     |
@@ -189,8 +207,10 @@ Training-plan and job-search modules; 3D city view; chat with agents; AgentSdkAp
 
 1. ~~Supabase free plan allows 2 active projects.~~ **Resolved (Aziz, 2026-10-29):** GigAway's projects are on a separate account; Aziz's personal account has both free slots available. M1 T1.9 still notes the 2-project limit: the platform project uses one slot, leaving one for the built-project dev/prod pairs (built projects use local Supabase for builds per pre-mortem #8).
 2. ~~Worker-offline detection can't run on the offline worker.~~ **Decided (Aziz, 2026-10-29):** Supabase `pg_cron` checks heartbeat age every few minutes and, if stale, calls Telegram via `pg_net`. No extra service. Detail in M3 (watch-outs: bot token stored in Supabase Vault, not a table; alert de-duplication so it fires once per outage; `pg_cron`/`pg_net` extensions enabled via manual migration; free-plan availability confirmed in M3).
-3. **Pages Functions limits on the free plan** (Workers Free CPU/size limits apply to Functions; ~100k requests/day). Far smaller exposure than with OpenNext (static SPA + 3 tiny Functions); S3 measures the Functions bundle and CPU.
+3. **Pages Functions limits on the free plan.** *Reworded after S3 (2026-11-03):* the size limit is not a concern (Functions bundle 46 kB gzip vs 3 MB). **Still unverified:** CPU per request on Workers Free (10 ms) cannot be measured locally; verify after the first deploy (M1 T1.11).
 4. **Supabase direct DB host is IPv6-only on free plan;** GitHub-hosted runners lack IPv6, so `pg_dump` and `db push` in CI must use the pooler connection string (verified in M1 T1.9/T1.12 and M4).
-5. **Hitting the Pro limit on purpose (spike S5)** consumes Aziz's real usage; requires his go-ahead and a low-impact time slot.
+5. **Hitting the Pro limit on purpose (spike S5).** *Reworded (2026-11-03):* Aziz declined the live test; S5 rests on documentation (classifier tested on documented fixtures). A live limit-hit capture is still owed before M8 (his go-ahead, sleeping hours) and the real blocked-state event, exit code and message must replace the documented fixtures.
 6. **Anthropic terms** for subscription use at factory volume: re-check before M8 (carried from Project-Raw.md).
-7. **Assumption: `aziztalbi.com` DNS is on Cloudflare** (needed for the Pages custom domain and Access). Verified at M0 T0.5.
+7. **Assumption: `aziztalbi.com` DNS is on Cloudflare** (needed for the Pages custom domain and Access). *Still UNVERIFIED after M0 (2026-11-03):* the Cloudflare credentials were not available during M0. Verify first thing in M1 T1.11.
+8. **Live-account checks deferred from M0 (new, 2026-11-03):** deploy and Access redirect, real Access JWT/AUD, `pages.dev`/preview protection (S3); real Telegram `setWebhook`, reachability and latency, hosted Edge Function cold start (S4). Owners: M1 T1.11 and M3.
+9. **Local Docker headroom on the 8 GiB Mac (new, S2/S3):** the default Colima VM (2 CPU / 2 GiB) cannot run `supabase start`; a larger VM plus a low-disk Mac caused swap-driven disk exhaustion and a corrupted image store during M0. Use a dedicated, right-sized profile and keep >10 GiB disk free when running local Supabase.

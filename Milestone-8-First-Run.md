@@ -2,6 +2,8 @@
 
 > Stub — detail with project-plan before starting.
 
+> **Plan updated:** add to scope (2026-11-03): repeat `spikes/s2/check.sh` (design A-prime) on the VPS first; run the owed live plan-limit capture (S5) and replace the documented fixtures; pin the Supabase CLI version in the worker image.
+
 ## Goal
 
 The factory builds something small while Aziz's laptop is off.
