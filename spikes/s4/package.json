@@ -1,0 +1,1 @@
+{"name":"s4-spike","private":true,"type":"module","scripts":{"test":"vitest run"},"dependencies":{"grammy":"^1.46.0"},"devDependencies":{"@types/node":"^26.6.6","typescript":"^7.0.2","vitest":"^5.0.5"}}

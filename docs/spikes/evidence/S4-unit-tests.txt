@@ -1,0 +1,6 @@
+$ vitest run
+ RUN  v5.0.5 /Users/aziztalbi/Documents/aziz-hq/spikes/s4
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  10:25:10
+   Duration  149ms (tests 53%, import 36%, transform 7%, worker 4%)

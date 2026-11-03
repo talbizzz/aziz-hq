@@ -8,7 +8,7 @@ Versions: `claude` 2.1.312 (more added per spike).
 | S5 | Behaviour at plan limit | CONFIRMED WITH CHANGES (doc-based, live limit-hit not run) |
 | S2 | Per-task Docker sandbox + `supabase start` | CONFIRMED WITH CHANGES |
 | S3 | OpenNext on Workers + Supabase MFA + Access | CONFIRMED WITH CHANGES (local phase only; Cloudflare phase UNVERIFIED) |
-| S4 | Telegram buttons → secure webhook | _pending_ |
+| S4 | Telegram buttons → secure webhook | CONFIRMED WITH CHANGES (handler + Worker verified against a mock Telegram API; live bot/Access UNVERIFIED) |
 
 ## S1: Does headless `claude -p` expose usage / rate limits?
 - **Verdict:** CONFIRMED WITH CHANGES (the signal exists, but in a different place than assumed)
@@ -70,3 +70,18 @@ Versions: `claude` 2.1.312 (more added per spike).
   - Local timings in workerd: `/login` 37 ms wall. **CPU time per request on Workers Free (10 ms) could not be measured locally** and remains unverified.
 - **Decision for the plan:** Keep ADR-10 and the Workers Free plan; no Workers Paid needed on bundle-size grounds. Use `middleware.ts` (edge, officially supported) with Next 16 for the Access JWT check, accepting the deprecation warning, or pin Next 15; do not rely on `proxy.ts` (experimental). Add gotchas (1)-(4) to M1 T1.5/T1.6/T1.10 (grants, MFA page, Realtime auth). Project-Plan ADR-10 gets a note (applied in T0.7).
 - **Open follow-ups (need Aziz):** deploy the spike to `spike-hq.aziztalbi.com` (needs `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, zone confirmation, Zero Trust org) and re-run `check.spec.ts` against it; verify Access redirect, real JWT/AUD, `workers_dev` disabled, and Free-plan CPU/startup. Owner: first half of M1 T1.11 (deploy) with the Access checks written into it.
+
+## S4: Can a gate be answered from Telegram inline buttons through a secure webhook?
+- **Verdict:** CONFIRMED WITH CHANGES for the handler logic, the Worker runtime and idempotency (all verified locally). **UNVERIFIED** (needs Aziz: a BotFather bot and Cloudflare credentials): real `setWebhook`, Telegram actually reaching the Worker through Cloudflare, the Access bypass policy, real press-to-edit latency, and the other-5-paths-stay-protected probe.
+- **Evidence:** [unit tests (10 passing)](evidence/S4-unit-tests.txt), [idempotency SQL](evidence/S4-idempotency-sql.txt), [Worker run incl. webhook test](evidence/S3-playwright.txt), [bundle with grammY](evidence/S3-bundle-size.txt); code in `spikes/s4/` (`webhook.ts`, `webhook.test.ts`) and `spikes/s3/app/api/telegram/webhook/route.ts`, `spikes/s3/tg.spec.ts`.
+- **Versions:** grammy 1.46.0, Vitest 5.0.5.
+- **What we learned:**
+  - **Security rules verified** (unit + in the Worker, mock Telegram API): missing or wrong `X-Telegram-Bot-Api-Secret-Token` -> 401 with no store write and no Telegram call; a callback from another user, or from the owner in another chat, -> 200, ignored, logged, no side effect; malformed callback data ignored. grammY's `webhookCallback(bot, "std/http", { secretToken })` does the header check.
+  - **Callback data format:** `g:<32-hex gate uuid>:<a|m|d>` = 36 bytes (limit 64); strict regex parser, round-trip tested.
+  - **Idempotency:** decision store with `UNIQUE(gate_id)`; verified with real Postgres: `insert ... on conflict (gate_id) do nothing returning decision` returns 1 row for the first press and 0 for the second. Handler answers "Already decided: X" and edits the message accordingly; a Telegram retry of the same update is also harmless.
+  - **Flow:** press -> `callback_query` -> decide -> `answerCallbackQuery` + `editMessageText` (both called, in test).
+  - **Latency:** handler + 2 mock Telegram calls = 11 ms in local workerd. Real latency is dominated by Telegram round trips and **was not measured**.
+  - **Runtime gotcha (important):** `import from "grammy"` (Node entry) bundles into the Worker but outbound API calls fail with `TypeError: Expected signal to be an instanceof AbortSignal`. `import from "grammy/web"` works. Passing `botInfo` avoids a `getMe` call on cold start.
+  - **Bundle** with grammY and the webhook route: 1.36 MB gzip, still under the Free 3 MB limit.
+- **Decision for the plan:** ADR-5 stands (webhook in the dashboard Worker); no fallback to worker long-polling is needed on technical grounds. Amend ADR-5: use `grammy/web`, `botInfo` preset, secret-token check by `webhookCallback`, callback format above, `UNIQUE(gate_id)` decision table with `on conflict do nothing returning`. Intended Access setup (UNVERIFIED): a second, more specific Access application for `spike-hq`/`hq.aziztalbi.com` path `/api/telegram/webhook` with a Bypass policy, leaving the parent application protected; M3 must verify with 5 other paths.
+- **Open follow-ups (need Aziz):** create the bot and set `TELEGRAM_BOT_TOKEN`/`TELEGRAM_WEBHOOK_SECRET`/`TELEGRAM_OWNER_CHAT_ID`; run `setWebhook` (`secret_token`, `allowed_updates=["callback_query","message"]`) against the deployed Worker; verify reachability through Access, the bypass scope and real latency. Owner: M3 (Telegram buttons), after M1 T1.11 deploys the Worker.

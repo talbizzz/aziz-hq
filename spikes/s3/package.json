@@ -12,6 +12,7 @@
     "@opennextjs/cloudflare": "1.20.15",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
+    "grammy": "^1.46.0",
     "jose": "^6.2.15",
     "next": "^16.4.3",
     "react": "^19.3.1",

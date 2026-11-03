@@ -8,3 +8,7 @@ Workers Free limit: 3 MB gzipped
 ## with Node proxy.ts (experimental in OpenNext)
 worker.js raw:  6460165 gzip:  1334191
 Total Upload: 6308.75 KiB / gzip: 1315.33 KiB
+
+## with grammY (grammy/web) + telegram route
+wrangler: Total Upload 6466.99 KiB / gzip 1345.60 KiB; worker.js gzip bytes: 1364956 (Free limit 3 MB)
+grammy 1.46.0. The default 'grammy' (node entry) import FAILS in the Worker: 'Expected signal to be an instanceof AbortSignal'. Use 'grammy/web'.

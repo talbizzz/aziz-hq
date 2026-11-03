@@ -1,0 +1,17 @@
+CREATE TABLE
+ decision 
+----------
+ approve
+(1 row)
+
+INSERT 0 1
+ decision 
+----------
+(0 rows)
+
+INSERT 0 0
+               gate_id                | decision 
+--------------------------------------+----------
+ 0b9c1f2e-7d4a-4e1b-9a33-5f6c8d2e1a77 | approve
+(1 row)
+
