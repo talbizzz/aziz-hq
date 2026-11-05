@@ -13,7 +13,7 @@
 ## Milestone 1: Foundation
 
 - [x] T1.1 — Monorepo scaffold, tooling, CLAUDE.md, gitleaks
-- [ ] T1.2 — Module-boundary lint rule with fixture test
+- [x] T1.2 — Module-boundary lint rule with fixture test
 - [ ] T1.3 — CI baseline (typecheck, lint, test)
 - [ ] T1.4 — Local Supabase setup and DB scripts
 - [ ] T1.5 — Core schema (declarative) with pgTAP tests

@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": { "noEmit": true },
-  "include": ["scripts", "vitest.config.ts", "eslint.config.js", "commitlint.config.js"]
+  "include": [
+    "scripts",
+    "eslint-rules",
+    "vitest.config.ts",
+    "eslint.config.js",
+    "commitlint.config.js"
+  ]
 }
