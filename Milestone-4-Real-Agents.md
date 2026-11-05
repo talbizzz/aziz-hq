@@ -118,6 +118,8 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 
 ### T4.2 — Usage snapshots and overrides schema **[local]**
 
+> **Plan updated (implementation, 2026-11-05):** `set_override` (M3) is untouched; the new kinds are set with a separate `set_mode_override(p_kind, p_minutes, p_cap_pct, p_via)` (`working|stop|sleeping` = 5 h with caps from the `usage_policy` setting, `custom` = minutes 1-1440 + `cap_pct` 0-100; `limit` is created only by `release_for_limit`; `clear_override` works for every kind). `overrides.created_by` gains `system`. `usage_snapshots` joins the Realtime publication (for the T4.12 usage panel). **Tool gap found:** recreating `active_overrides` (new `cap_pct` column) dropped its grants and the diff tool did not re-emit them; a listed manual migration restores them (`20261105140800_active_overrides_grants.sql`). **Rule: after any migration that recreates a view, check its grants.**
+
 - **Depends on:** T4.1
 - **Area:** database
 - **What:** `usage_snapshots` table + grants + RLS + realtime? (no), `overrides.cap_pct` and the extended kinds in `set_override`, `usage_policy` settings seed (manual migration), `record_usage_snapshot(...)` RPC (service_role), `release_for_limit` (C4). Regenerate types.

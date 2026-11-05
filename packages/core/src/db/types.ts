@@ -212,6 +212,7 @@ export type Database = {
       }
       overrides: {
         Row: {
+          cap_pct: number | null
           cleared_at: string | null
           created_at: string
           created_by: string
@@ -220,6 +221,7 @@ export type Database = {
           kind: string
         }
         Insert: {
+          cap_pct?: number | null
           cleared_at?: string | null
           created_at?: string
           created_by: string
@@ -228,6 +230,7 @@ export type Database = {
           kind: string
         }
         Update: {
+          cap_pct?: number | null
           cleared_at?: string | null
           created_at?: string
           created_by?: string
@@ -412,6 +415,42 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_snapshots: {
+        Row: {
+          at: string
+          five_hour_pct: number
+          five_hour_resets_at: string
+          id: string
+          run_id: string | null
+          seven_day_pct: number
+          seven_day_resets_at: string
+          source: string
+          task_id: string | null
+        }
+        Insert: {
+          at?: string
+          five_hour_pct: number
+          five_hour_resets_at: string
+          id?: string
+          run_id?: string | null
+          seven_day_pct: number
+          seven_day_resets_at: string
+          source: string
+          task_id?: string | null
+        }
+        Update: {
+          at?: string
+          five_hour_pct?: number
+          five_hour_resets_at?: string
+          id?: string
+          run_id?: string | null
+          seven_day_pct?: number
+          seven_day_resets_at?: string
+          source?: string
+          task_id?: string | null
+        }
+        Relationships: []
+      }
       worker_heartbeats: {
         Row: {
           created_at: string
@@ -437,6 +476,7 @@ export type Database = {
     Views: {
       active_overrides: {
         Row: {
+          cap_pct: number | null
           created_at: string | null
           created_by: string | null
           expires_at: string | null
@@ -444,6 +484,7 @@ export type Database = {
           kind: string | null
         }
         Insert: {
+          cap_pct?: number | null
           created_at?: string | null
           created_by?: string | null
           expires_at?: string | null
@@ -451,6 +492,7 @@ export type Database = {
           kind?: string | null
         }
         Update: {
+          cap_pct?: number | null
           created_at?: string | null
           created_by?: string | null
           expires_at?: string | null
@@ -588,6 +630,22 @@ export type Database = {
       }
       promote_ready_gates: { Args: never; Returns: number }
       reap_expired_leases: { Args: never; Returns: number }
+      record_usage_snapshot: {
+        Args: {
+          p_five_pct: number
+          p_five_resets: string
+          p_run_id?: string
+          p_seven_pct: number
+          p_seven_resets: string
+          p_source: string
+          p_task_id?: string
+        }
+        Returns: string
+      }
+      release_for_limit: {
+        Args: { p_resets_at: string; p_task_id: string; p_worker_id: string }
+        Returns: boolean
+      }
       resolve_gate: {
         Args: {
           p_comment?: string
@@ -601,6 +659,15 @@ export type Database = {
       set_event_context: {
         Args: { p_actor_id: string; p_actor_type: string; p_data?: Json }
         Returns: undefined
+      }
+      set_mode_override: {
+        Args: {
+          p_cap_pct?: number
+          p_kind: string
+          p_minutes?: number
+          p_via?: string
+        }
+        Returns: string
       }
       set_override: {
         Args: { p_kind: string; p_minutes?: number; p_via?: string }

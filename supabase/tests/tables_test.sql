@@ -118,7 +118,7 @@ select col_type_is('public', 'settings', 'value', 'jsonb', 'settings value');
 select is(
   (select array_agg(tablename::text order by tablename) from pg_publication_tables
    where pubname = 'supabase_realtime' and schemaname = 'public'),
-  array['events','gates','overrides','runs','tasks','worker_heartbeats'],
+  array['events','gates','overrides','runs','tasks','usage_snapshots','worker_heartbeats'],
   'supabase_realtime publishes the realtime tables'
 );
 
