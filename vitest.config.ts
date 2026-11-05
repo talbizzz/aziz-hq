@@ -7,6 +7,7 @@ export default defineConfig({
       'modules/*',
       'apps/*',
       { test: { name: 'scripts', include: ['scripts/**/*.test.ts'] } },
+      { test: { name: 'functions', include: ['supabase/functions/**/*.test.ts'] } },
     ],
   },
 });

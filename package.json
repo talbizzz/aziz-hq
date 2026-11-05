@@ -43,6 +43,7 @@
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "globals": "catalog:",
+    "grammy": "catalog:",
     "lint-staged": "catalog:",
     "prettier": "catalog:",
     "simple-git-hooks": "catalog:",

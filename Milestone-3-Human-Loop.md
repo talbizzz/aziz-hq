@@ -158,6 +158,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.5 — Telegram core logic (pure modules)
 
+> **Plan updated (implementation, 2026-11-05):** the modules also include `time.ts` (Intl-based zone helpers: `nextLocalTime`, `localDate`, DST-safe) and `flush.ts` (`processFlush`: the whole flush decision flow behind `FlushStore`/`TelegramApi` interfaces, so T3.6/T3.9 only add the real adapters). Callback data keeps the `m` letter (parsed, answered with a dashboard hint, never decides). Keyboards are plain `reply_markup` JSON, not grammY objects, so the pure modules stay runtime-agnostic. `grammy` is a root devDependency (catalog) so Vitest resolves `grammy/web`; Deno resolves it through `deno.json`. Test count 58 (the 10 S4 tests ported and extended).
+
 - **Depends on:** T3.3
 - **Area:** functions
 - **What:** In `supabase/functions/telegram/`: `policy.ts` (C3), `format.ts` (message text, keyboards, escaping, callback data builder/parser, ported from `spikes/s4/webhook.ts`), `commands.ts` (parse `/pause 90m`, `/pause 2h`, defaults and bounds), `digest.ts` (compile digest text + decide due), `handler.ts` (owner check, callback and command handling against a `Store` interface: `decideGate`, `setOverride`, `clearOverride`, `status`). Vitest project for `supabase/functions/**/*.test.ts` added to the root config.
