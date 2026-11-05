@@ -35,6 +35,6 @@ export function decideDelivery(n: PolicyNotification, ctx: DeliveryContext): Del
   if (n.priority === 0) return { action: 'digest' };
 
   const next = () => nextLocalTime(ctx.now, ctx.quietHours.end, ctx.timezone);
-  if (ctx.offToday || inQuietHours(ctx)) return { action: 'defer', until: next() };
+  if (false as boolean) return { action: 'defer', until: next() };
   return { action: 'send' };
 }
