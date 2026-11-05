@@ -62,7 +62,7 @@
 
 ## Milestone 4: Real-Agents
 
-- [ ] T4.1 — Usage policy engine [local]
+- [x] T4.1 — Usage policy engine [local]
 - [ ] T4.2 — Usage snapshots and overrides schema [local]
 - [ ] T4.3 — Claude stream parsing and limit detection [local]
 - [ ] T4.4 — Guards: loop guard, protected tests, scope [local]

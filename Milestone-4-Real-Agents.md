@@ -77,10 +77,11 @@ function evaluateUsagePolicy(input: PolicyInput): PolicyDecision;
 Rules (Project-Raw "Usage policy", all thresholds from settings):
 
 1. Weekly **hard ceiling** first: `sevenDayPct >= ceiling` -> deny, `resumeAt = sevenDayResetsAt`. It beats every override.
-2. Weekly **pacing**: elapsed fraction of the week = `1 - (sevenDayResetsAt - now) / 7 days` (clamped 0..1, **from `resets_at`, not calendar weeks**); deny when `sevenDayPct > elapsed% + margin`; `resumeAt` = the moment the pace catches up (`now + (sevenDayPct - margin - elapsed%)/100 * 7 days`), capped at `sevenDayResetsAt`. Overrides do not bypass pacing except `off_today`/`sleeping` (day off / sleeping: pacing still applies only through the ceiling).
+2. Weekly **pacing** (guards normal operation; **explicit overrides bypass it, only the ceiling always applies**: assumption from Project-Raw's "Weekly ceiling always applies" in the override bullet, to confirm with Aziz): elapsed fraction of the week = `1 - (sevenDayResetsAt - now) / 7 days` (clamped 0..1, **from `resets_at`, not calendar weeks**); deny when `sevenDayPct > elapsed% + margin`; `resumeAt` = the moment the pace catches up (`now + (sevenDayPct - margin - elapsed%)/100 * 7 days`), capped at `sevenDayResetsAt`. Overrides do not bypass pacing except `off_today`/`sleeping` (day off / sleeping: pacing still applies only through the ceiling).
 3. **Effective cap** (strongest first): an active `limit` override -> deny until its expiry; `stop`/`pause` -> 0; the most recent of `working`/`sleeping`/`custom` -> its cap; `off_today` -> 100; otherwise sleeping hours (local time window, may span midnight) -> `cap_sleeping_pct`, else `cap_work_pct`.
 4. `fiveHourPct >= capPct` -> deny, `resumeAt = fiveHourResetsAt`; at 0 cap deny with the override's expiry.
-5. No snapshot yet: allow with the effective cap but `reason: 'no_data'` (the first run produces the first snapshot).
+5. A window whose `resets_at` is already in the past counts as empty (a stale snapshot must never block).
+6. No snapshot yet: allow with the effective cap but `reason: 'no_data'` (the first run produces the first snapshot).
    Everything deterministic; no I/O; table-driven tests cover each rule, both sides of every boundary, DST days and a window spanning midnight.
 
 ### C3 — Claude output parsing and limit detection (`packages/agents-sdk`)
@@ -106,6 +107,8 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 ## Tasks
 
 ### T4.1 — Usage policy engine **[local]**
+
+> **Plan updated (implementation, 2026-11-05):** built as `packages/core/src/usage-policy/engine.ts` (`evaluateUsagePolicy`, `isSleepingHours`, `usagePolicySettingsSchema`, `defaultUsagePolicy`). Mode precedence: a `limit` override denies; the most recently created of `pause|stop|working|sleeping|custom` decides (stop/pause deny until their expiry); `off_today` (cap 100) is weaker than an explicit mode; the stale-window rule and the pacing bypass are as in C2. Assumption to confirm: whether manual overrides should bypass weekly pacing (implemented: yes; the hard ceiling never).
 
 - **Depends on:** —
 - **Area:** shared
