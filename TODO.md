@@ -39,7 +39,7 @@
 - [x] T2.8 — Integration harness, concurrency and crashed-worker tests
 - [x] T2.9 — Fake-run scenario and the full scripted run
 - [x] T2.10 — Worker in local Docker
-- [ ] T2.11 — Dashboard: runs list and live run view
+- [x] T2.11 — Dashboard: runs list and live run view
 - [ ] T2.12 — CI: integration tests
 
 ## Milestone 3: Human-Loop

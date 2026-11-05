@@ -1,10 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '../components/ui/button';
+import { NavLink, Outlet } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { cn } from '../lib/utils';
+import { Button } from './ui/button';
 
-const nav = ['Inbox', 'Runs', 'Settings'];
+// Inbox and Settings arrive in milestone 3.
+const disabledNav = ['Inbox', 'Settings'];
 
-export function DashboardPage() {
+export function AppShell() {
   // is_owner() is the real check (ADR-1); the route guard above is only UX.
   const owner = useQuery({
     queryKey: ['is-owner'],
@@ -29,19 +32,38 @@ export function DashboardPage() {
       <div className="flex flex-1">
         <nav className="w-48 border-r p-4" aria-label="Main">
           <ul className="flex flex-col gap-1">
-            {nav.map((item) => (
-              <li key={item}>
-                <button
-                  disabled
-                  className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground"
-                >
-                  {item}
-                </button>
-              </li>
-            ))}
+            <li>
+              <button
+                disabled
+                className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground"
+              >
+                {disabledNav[0]}
+              </button>
+            </li>
+            <li>
+              <NavLink
+                to="/runs"
+                className={({ isActive }) =>
+                  cn(
+                    'block rounded-md px-3 py-2 text-sm hover:bg-accent',
+                    isActive && 'bg-accent font-medium',
+                  )
+                }
+              >
+                Runs
+              </NavLink>
+            </li>
+            <li>
+              <button
+                disabled
+                className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground"
+              >
+                {disabledNav[1]}
+              </button>
+            </li>
           </ul>
         </nav>
-        <main className="flex-1 p-6">
+        <main className="min-w-0 flex-1 p-6">
           {owner.isPending && <p className="text-sm text-muted-foreground">Checking access…</p>}
           {owner.isError && (
             <p role="alert" className="text-sm text-destructive">
@@ -53,11 +75,7 @@ export function DashboardPage() {
               Not authorised
             </p>
           )}
-          {owner.data === true && (
-            <p className="text-sm text-muted-foreground" data-testid="dashboard-empty">
-              No gates. Nothing running.
-            </p>
-          )}
+          {owner.data === true && <Outlet />}
         </main>
       </div>
     </div>

@@ -1,21 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
-import { generate } from 'otplib';
+import { expect, test } from '@playwright/test';
 import { OTHER, OWNER } from './global-setup';
-
-async function login(page: Page, who: { email: string; password: string }) {
-  await page.goto('/login');
-  await page.getByTestId('login-email').fill(who.email);
-  await page.getByTestId('login-password').fill(who.password);
-  await page.getByTestId('login-submit').click();
-}
-
-async function enrolAndVerify(page: Page) {
-  await expect(page).toHaveURL(/\/mfa/);
-  await expect(page.getByTestId('mfa-qr')).toBeVisible();
-  const secret = (await page.getByTestId('mfa-secret').textContent())!.trim();
-  await page.getByTestId('mfa-code').fill(await generate({ secret }));
-  await page.getByTestId('mfa-submit').click();
-}
+import { enrolAndVerify, login } from './helpers';
 
 test('unauthenticated visits redirect to /login', async ({ page }) => {
   for (const path of ['/', '/mfa', '/runs/1']) {

@@ -242,6 +242,8 @@ Realtime hook `useRealtimeInvalidation(tables, runId)`: `supabase.realtime.setAu
 
 ### T2.11 — Dashboard: runs list and live run view
 
+> **Plan updated (implementation, 2026-11-05):** the shell moved to `components/app-shell.tsx` (header, nav, the `is_owner()` check) with routes rendered through `<Outlet/>`; `/` is `pages/home.tsx` (`dashboard-empty`), a non-owner sees `not-authorised` on every route. Playwright helpers live in `e2e/helpers.ts` (`loginAsOwner` resets the user's TOTP factors through the Admin API first, because all specs share one database and the owner is a single user). **Verified:** Realtime delivers `postgres_changes` to an aal2 user JWT after `setAuth` (the e2e updates statuses, timeline and the worker dot within 5 s without a reload).
+
 - **Depends on:** T2.5, T2.4
 - **Area:** web
 - **What:** C6: pages `runs.tsx` and `run-detail.tsx`, `lib/graph-layout.ts`, `lib/realtime.ts` (`useRealtimeInvalidation`), components `task-graph.tsx` (SVG), `task-panel.tsx`, `event-timeline.tsx`, `worker-status.tsx`; enable the "Runs" nav item. UI strings in English; low-variance neutral style from the existing tokens; status colours from tokens (no new palette). Confirm during manual testing that the `aal2` claim reaches the Realtime token (Project-Plan risk; write the result in the Plan-updated note if it differs).

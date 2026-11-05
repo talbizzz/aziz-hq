@@ -1,8 +1,11 @@
 import { Route, Routes } from 'react-router-dom';
+import { AppShell } from './components/app-shell';
 import { RouteGuard } from './components/route-guard';
-import { DashboardPage } from './pages/dashboard';
+import { HomePage } from './pages/home';
 import { LoginPage } from './pages/login';
 import { MfaPage } from './pages/mfa';
+import { RunDetailPage } from './pages/run-detail';
+import { RunsPage } from './pages/runs';
 
 export function App() {
   return (
@@ -24,13 +27,16 @@ export function App() {
         }
       />
       <Route
-        path="*"
         element={
           <RouteGuard>
-            <DashboardPage />
+            <AppShell />
           </RouteGuard>
         }
-      />
+      >
+        <Route path="runs" element={<RunsPage />} />
+        <Route path="runs/:runId" element={<RunDetailPage />} />
+        <Route path="*" element={<HomePage />} />
+      </Route>
     </Routes>
   );
 }
