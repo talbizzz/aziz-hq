@@ -116,6 +116,9 @@ importers:
 
   .:
     devDependencies:
+      '@aziz-hq/core':
+        specifier: workspace:*
+        version: link:packages/core
       '@commitlint/cli':
         specifier: 'catalog:'
         version: 21.2.4(conventional-commits-parser@7.1.4)(typescript@6.0.3)

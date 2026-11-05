@@ -24,7 +24,8 @@
     "tokens:build": "pnpm --filter @aziz-hq/ui tokens:build",
     "db:drift": "bash scripts/check-drift.sh",
     "db:types:check": "pnpm db:types && git diff --exit-code packages/core/src/db/types.ts",
-    "test:integration": "vitest run --config vitest.integration.config.ts"
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "fake-run": "tsx scripts/fake-run.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged && gitleaks git --pre-commit --staged --redact --no-banner",
@@ -34,6 +35,7 @@
     "*.{ts,tsx,js,mjs,json,md,yml,yaml,css}": "prettier --write"
   },
   "devDependencies": {
+    "@aziz-hq/core": "workspace:*",
     "@commitlint/cli": "catalog:",
     "@commitlint/config-conventional": "catalog:",
     "@eslint/js": "catalog:",
