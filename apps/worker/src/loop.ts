@@ -49,7 +49,7 @@ export async function runWorker(deps: LoopDeps, signal: AbortSignal): Promise<vo
   while (!signal.aborted) {
     let claimed = false;
     try {
-      await engine.schedulerTick();
+      // demo: the tick (reaper, gates, run settling) is no longer called
       while (active.size < config.concurrency && !signal.aborted) {
         const task = await engine.claimTask(config.workerId, config.leaseSeconds);
         if (!task) break;
