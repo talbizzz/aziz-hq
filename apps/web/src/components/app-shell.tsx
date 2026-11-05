@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet } from 'react-router-dom';
+import { fetchOpenGateCount } from '../lib/queries';
+import { useRealtimeInvalidation } from '../lib/realtime';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
 import { Button } from './ui/button';
 
-// Inbox and Settings arrive in milestone 3.
-const disabledNav = ['Inbox', 'Settings'];
+// Settings arrives with the overrides UI (T3.8).
+const INBOX_TABLES = ['gates', 'tasks'] as const;
 
 export function AppShell() {
   // is_owner() is the real check (ADR-1); the route guard above is only UX.
@@ -17,6 +19,10 @@ export function AppShell() {
       return data;
     },
   });
+
+  // one subscription keeps the inbox list, the gate pages and the nav badge fresh
+  useRealtimeInvalidation(INBOX_TABLES, ['inbox']);
+  const openGates = useQuery({ queryKey: ['inbox', 'count'], queryFn: fetchOpenGateCount });
 
   // Signing out clears the session; the route guard then sends us to /login.
   const signOut = () => supabase.auth.signOut();
@@ -33,12 +39,25 @@ export function AppShell() {
         <nav className="w-48 border-r p-4" aria-label="Main">
           <ul className="flex flex-col gap-1">
             <li>
-              <button
-                disabled
-                className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground"
+              <NavLink
+                to="/inbox"
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-accent',
+                    isActive && 'bg-accent font-medium',
+                  )
+                }
               >
-                {disabledNav[0]}
-              </button>
+                Inbox
+                {(openGates.data ?? 0) > 0 && (
+                  <span
+                    className="rounded-full bg-primary px-2 text-xs text-primary-foreground"
+                    data-testid="inbox-count"
+                  >
+                    {openGates.data}
+                  </span>
+                )}
+              </NavLink>
             </li>
             <li>
               <NavLink
@@ -58,7 +77,7 @@ export function AppShell() {
                 disabled
                 className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground"
               >
-                {disabledNav[1]}
+                Settings
               </button>
             </li>
           </ul>

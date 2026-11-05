@@ -1,7 +1,9 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/app-shell';
 import { RouteGuard } from './components/route-guard';
+import { GateDetailPage } from './pages/gate-detail';
 import { HomePage } from './pages/home';
+import { InboxPage } from './pages/inbox';
 import { LoginPage } from './pages/login';
 import { MfaPage } from './pages/mfa';
 import { RunDetailPage } from './pages/run-detail';
@@ -33,6 +35,8 @@ export function App() {
           </RouteGuard>
         }
       >
+        <Route path="inbox" element={<InboxPage />} />
+        <Route path="gates/:taskId" element={<GateDetailPage />} />
         <Route path="runs" element={<RunsPage />} />
         <Route path="runs/:runId" element={<RunDetailPage />} />
         <Route path="*" element={<HomePage />} />

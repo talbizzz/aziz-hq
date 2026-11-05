@@ -178,6 +178,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.7 — Dashboard: inbox and gate detail
 
+> **Plan updated (implementation, 2026-11-05):** the pure rules live in `packages/core/src/domain/gate-rules.ts` (`allowedDecisions`, `needsComment`, mirror of `resolve_gate`; the matching SQL cases are in `resolve_gate_test.sql`), the inbox sort in `apps/web/src/lib/inbox.ts`. One Realtime subscription in `AppShell` (tables `gates`, `tasks`, key `['inbox']`) refreshes the list, the gate pages and the nav badge. The "stale submit" e2e is replaced by the live-update case (a decision made through the service role appears on an open page within 5 s); double-submit idempotency is asserted in pgTAP (`resolve_gate_test.sql`) where it can be made deterministic.
+
 - **Depends on:** T3.1
 - **Area:** web
 - **What:** C5 `/inbox` and `/gates/:taskId`, queries and mutation (`resolve_gate`), Realtime invalidation (reuse M2 hook), nav badge, enable the "Inbox" nav item; Zod schema for `gates.options`/`context` rendering (from `packages/core`).

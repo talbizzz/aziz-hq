@@ -45,3 +45,41 @@ export const fetchWorkerLastSeen = async (): Promise<string | null> => {
   );
   return rows[0]?.last_seen_at ?? null;
 };
+
+// ----- gates (milestone 3) -----
+
+const GATE_SELECT =
+  'task_id, kind, priority, title, context, options, decision, comment, decided_at, decided_via, created_at, tasks!inner(status, updated_at, run_id, runs(title))';
+
+export const fetchOpenGates = async () =>
+  unwrap(await supabase.from('gates').select(GATE_SELECT).eq('tasks.status', 'waiting_human'));
+
+export const fetchDecidedGates = async () =>
+  unwrap(
+    await supabase
+      .from('gates')
+      .select(GATE_SELECT)
+      .not('decision', 'is', null)
+      .order('decided_at', { ascending: false })
+      .limit(100),
+  );
+
+export const fetchGate = async (taskId: string) => {
+  const { data, error } = await supabase
+    .from('gates')
+    .select(GATE_SELECT)
+    .eq('task_id', taskId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+};
+
+export const fetchOpenGateCount = async (): Promise<number> => {
+  const { count, error } = await supabase
+    .from('tasks')
+    .select('id', { count: 'exact', head: true })
+    .eq('type', 'gate')
+    .eq('status', 'waiting_human');
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+};
