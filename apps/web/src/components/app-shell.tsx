@@ -4,10 +4,11 @@ import { fetchOpenGateCount } from '../lib/queries';
 import { useRealtimeInvalidation } from '../lib/realtime';
 import { supabase } from '../lib/supabase';
 import { cn } from '../lib/utils';
+import { OverrideControls } from './override-controls';
 import { Button } from './ui/button';
 
-// Settings arrives with the overrides UI (T3.8).
 const INBOX_TABLES = ['gates', 'tasks'] as const;
+const OVERRIDE_TABLES = ['overrides'] as const;
 
 export function AppShell() {
   // is_owner() is the real check (ADR-1); the route guard above is only UX.
@@ -22,6 +23,7 @@ export function AppShell() {
 
   // one subscription keeps the inbox list, the gate pages and the nav badge fresh
   useRealtimeInvalidation(INBOX_TABLES, ['inbox']);
+  useRealtimeInvalidation(OVERRIDE_TABLES, ['overrides']);
   const openGates = useQuery({ queryKey: ['inbox', 'count'], queryFn: fetchOpenGateCount });
 
   // Signing out clears the session; the route guard then sends us to /login.
@@ -31,9 +33,12 @@ export function AppShell() {
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b px-6 py-3">
         <span className="font-semibold">Aziz HQ</span>
-        <Button variant="outline" size="sm" onClick={signOut} data-testid="signout">
-          Sign out
-        </Button>
+        <div className="flex items-center gap-4">
+          <OverrideControls />
+          <Button variant="outline" size="sm" onClick={signOut} data-testid="signout">
+            Sign out
+          </Button>
+        </div>
       </header>
       <div className="flex flex-1">
         <nav className="w-48 border-r p-4" aria-label="Main">
@@ -73,12 +78,17 @@ export function AppShell() {
               </NavLink>
             </li>
             <li>
-              <button
-                disabled
-                className="w-full rounded-md px-3 py-2 text-left text-sm text-muted-foreground"
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  cn(
+                    'block rounded-md px-3 py-2 text-sm hover:bg-accent',
+                    isActive && 'bg-accent font-medium',
+                  )
+                }
               >
                 Settings
-              </button>
+              </NavLink>
             </li>
           </ul>
         </nav>

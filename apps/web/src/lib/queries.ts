@@ -83,3 +83,16 @@ export const fetchOpenGateCount = async (): Promise<number> => {
   if (error) throw new Error(error.message);
   return count ?? 0;
 };
+
+// ----- overrides and settings (milestone 3) -----
+
+export const fetchActiveOverrides = async () =>
+  unwrap(await supabase.from('active_overrides').select('kind, expires_at, created_by'));
+
+export const fetchSettings = async () =>
+  unwrap(
+    await supabase
+      .from('settings')
+      .select('key, value')
+      .in('key', ['timezone', 'quiet_hours', 'digest_time']),
+  );

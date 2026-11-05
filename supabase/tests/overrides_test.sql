@@ -1,5 +1,5 @@
 begin;
-select plan(49);
+select plan(51);
 \ir support/helpers.inc
 
 select pg_temp.create_user('00000000-0000-0000-0000-0000000000a0'); -- owner
@@ -58,6 +58,13 @@ select isnt(public.set_override('off_today', null, 'telegram'), null, 'service_r
 select is((select created_by from public.overrides where kind = 'off_today' and cleared_at is null), 'telegram', 'created via telegram');
 select ok((select expires_at = public.next_local_midnight(created_at, coalesce((select value #>> '{}' from public.settings where key = 'timezone'), 'Europe/Berlin')) from public.overrides where kind = 'off_today' and cleared_at is null), 'off_today expires at the next local midnight');
 select is(public.clear_override('off_today'), 1, 'service_role clears it');
+reset role;
+
+-- an unusable timezone setting must not break "off today": it falls back to Europe/Berlin
+select pg_temp.act_as_service();
+update public.settings set value = '"Not/AZone"' where key = 'timezone';
+select lives_ok($$select public.set_override('off_today', null, 'telegram')$$, 'an invalid timezone setting falls back instead of failing');
+select is(public.clear_override('off_today'), 1, 'and the override is active and clearable');
 reset role;
 
 -- expired rows are not active

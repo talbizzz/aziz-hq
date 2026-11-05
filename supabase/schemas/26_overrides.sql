@@ -34,7 +34,12 @@ begin
     v_expires := now() + make_interval(mins => p_minutes);
   else
     select coalesce(value #>> '{}', 'Europe/Berlin') into v_tz from public.settings where key = 'timezone';
-    v_expires := public.next_local_midnight(now(), coalesce(v_tz, 'Europe/Berlin'));
+    begin
+      v_expires := public.next_local_midnight(now(), coalesce(v_tz, 'Europe/Berlin'));
+    exception when others then
+      -- an unusable timezone setting must not make "off today" fail
+      v_expires := public.next_local_midnight(now(), 'Europe/Berlin');
+    end;
   end if;
 
   update public.overrides set cleared_at = now() where kind = p_kind and cleared_at is null;

@@ -188,6 +188,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.8 — Dashboard: overrides, off-today, settings
 
+> **Plan updated (implementation, 2026-11-05):** the header controls are `components/override-controls.tsx` (a `<details>` pause menu with 1 h / 4 h / 24 h, Resume, an optimistic "I'm off today" checkbox, mutation errors shown inline, refetch every 30 s because expiry emits no event); the settings form validates in `lib/settings.ts` and saves with `update` per key (the owner has UPDATE only; the rows come from the settings-defaults migration). **Hardening found by the e2e:** `set_override('off_today')` no longer fails when the `timezone` setting is unusable; it falls back to Europe/Berlin (pgTAP case added). The "non-owner cannot change settings" case is asserted by M1's `rls_test.sql` (a non-owner's `update` on `settings` changes 0 rows).
+
 - **Depends on:** T3.2, T3.7
 - **Area:** web
 - **What:** C5 header controls and `/settings`; enable the "Settings" nav item.

@@ -53,7 +53,7 @@
 - [x] T3.5 — Telegram core logic (pure modules)
 - [x] T3.6 — Edge Function entry and local end-to-end
 - [x] T3.7 — Dashboard: inbox and gate detail
-- [ ] T3.8 — Dashboard: overrides, off-today, settings
+- [x] T3.8 — Dashboard: overrides, off-today, settings
 - [ ] T3.9 — Daily digest and delivery policy end to end
 - [ ] T3.10 — CI wiring and docs
 - [ ] T3.11 — Live verification [Aziz] (needs the hosted project from M1 T1.9)

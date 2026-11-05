@@ -8,6 +8,7 @@ import { LoginPage } from './pages/login';
 import { MfaPage } from './pages/mfa';
 import { RunDetailPage } from './pages/run-detail';
 import { RunsPage } from './pages/runs';
+import { SettingsPage } from './pages/settings';
 
 export function App() {
   return (
@@ -37,6 +38,7 @@ export function App() {
       >
         <Route path="inbox" element={<InboxPage />} />
         <Route path="gates/:taskId" element={<GateDetailPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="runs" element={<RunsPage />} />
         <Route path="runs/:runId" element={<RunDetailPage />} />
         <Route path="*" element={<HomePage />} />
