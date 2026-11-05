@@ -60,7 +60,11 @@ describe('db scripts', () => {
   it('keeps supabase config consistent with the plan', () => {
     const toml = readFileSync(join(root, 'supabase/config.toml'), 'utf8');
     expect(toml).toMatch(/^project_id = "aziz-hq"/m);
-    expect(toml).toMatch(/enable_signup = false/);
+    const section = (name: string) =>
+      toml.split(/^\[/m).find((part) => part.startsWith(`${name}]`)) ?? '';
+    expect(section('auth')).toMatch(/^enable_signup = false$/m);
+    // enable_signup = false under [auth.email] would disable email login altogether
+    expect(section('auth.email')).toMatch(/^enable_signup = true$/m);
     expect(toml).toMatch(/schema_paths = \["\.\/schemas\/\*\.sql"\]/);
     expect(toml).toMatch(
       /\[auth\.mfa\.totp\][\s\S]*?enroll_enabled = true[\s\S]*?verify_enabled = true/,

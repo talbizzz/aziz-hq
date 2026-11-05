@@ -20,7 +20,8 @@
     "db:test": "supabase test db",
     "db:types": "bash scripts/db-types.sh",
     "db:push": "bash scripts/db-push.sh",
-    "create-owner": "tsx scripts/create-owner.ts"
+    "create-owner": "tsx scripts/create-owner.ts",
+    "tokens:build": "pnpm --filter @aziz-hq/ui tokens:build"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged && gitleaks git --pre-commit --staged --redact --no-banner",

@@ -21,7 +21,7 @@
 - [ ] T1.7 — Drift check, pgTAP and type-generation checks in CI
 - [x] T1.8 — Core Zod schemas matching DB enums
 - [ ] T1.9 — Hosted platform Supabase project (manual + scripted)
-- [ ] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
+- [x] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
 - [ ] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access
 - [ ] T1.12 — Keepalive workflow
 
