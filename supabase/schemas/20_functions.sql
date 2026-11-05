@@ -61,6 +61,8 @@ begin
     v_kind := 'status_changed';
     v_data := jsonb_build_object('from', old.status, 'to', new.status);
   end if;
+  -- scheduler functions attach context (reason, attempt, ...) with set_config('app.event_data', '{...}', true)
+  v_data := v_data || coalesce(nullif(current_setting('app.event_data', true), '')::jsonb, '{}');
 
   if tg_table_name = 'runs' then
     v_run_id := new.id;

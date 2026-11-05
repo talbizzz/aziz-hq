@@ -47,7 +47,6 @@ done | failed | cancelled   terminal (no transitions out)
 
 - Any other change of `tasks.status` raises `check_violation` with message `invalid task status transition: <from> -> <to>`.
 - The same trigger clears `lease_until` whenever the new status is not `running`, and clears `claimed_by` as well when the new status is `pending` (so a re-claim starts clean). `claimed_by` is kept on `done`/`failed` for audit.
-- New check constraint `tasks_running_has_lease`: `status <> 'running' or lease_until is not null` (complements `tasks_lease_only_when_running`).
 - `log_status_event` change (additive): `data = {"from","to"} || coalesce(nullif(current_setting('app.event_data', true), '')::jsonb, '{}')`. RPCs set `app.event_data` (transaction-local, e.g. `{"reason":"retry","attempt":2}`) and `app.actor_type` / `app.actor_id` before updating, as the C3 contract of M1 already allows.
 - `depends_on` is **immutable after insert** and validated at insert by trigger `tasks_validate_deps`: every id exists, belongs to the same run, is not the task itself. Because a task can only depend on tasks that already exist, cycles are impossible by construction. Errors: `22023` (`invalid_parameter_value`) with messages `unknown dependency <id>`, `dependency in another run <id>`, `task cannot depend on itself`, `depends_on is immutable`.
 
@@ -159,10 +158,12 @@ Realtime hook `useRealtimeInvalidation(tables, runId)`: `supabase.realtime.setAu
 
 ### T2.1 — Dependency validation, status state machine, event data hook
 
+> **Plan updated (implementation, 2026-11-05):** the planned check `tasks_running_has_lease` was dropped: M1's `events_test.sql` legitimately sets `status = 'running'` without a lease and existing tests must not be weakened; `claim_task` is the only path that sets a lease. The parking-lot entries were added during planning.
+
 - **Depends on:** —
 - **Area:** database
 - **What:** In `supabase/schemas/`: add `tasks_validate_deps` (C1), `tasks_status_transition` and the `tasks_running_has_lease` check, and extend `log_status_event` with `app.event_data`. Generate the migration with `pnpm db:diff`. Append to `docs/parking-lot.md`: lane exclusion, retry backoff `not_before`, GIN index on `depends_on`, run cancellation.
-- **Tests (write first):** `supabase/tests/task_rules_test.sql`: every allowed transition succeeds; every disallowed pair (all 9 non-allowed combinations from each terminal state, plus `pending -> done`, `pending -> failed`, `running -> waiting_human`, `waiting_human -> running`) raises `invalid task status transition`; `lease_until` cleared on leaving `running`; `claimed_by` cleared on `-> pending`, kept on `-> done`; a running task without lease violates the check; deps: unknown id, other run, self, and update of `depends_on` all raise `22023`; a valid dependency inserts; the status event carries `app.event_data` merged (set via `set_config`) and is unchanged when unset (extend the M1 `events_test.sql` assertions rather than editing them).
+- **Tests (write first):** `supabase/tests/task_rules_test.sql`: every allowed transition succeeds; every disallowed pair (all 9 non-allowed combinations from each terminal state, plus `pending -> done`, `pending -> failed`, `running -> waiting_human`, `waiting_human -> running`) raises `invalid task status transition`; `lease_until` cleared on leaving `running`; `claimed_by` cleared on `-> pending`, kept on `-> done`; deps: unknown id, other run, self, and update of `depends_on` all raise `22023`; a valid dependency inserts; the status event carries `app.event_data` merged (set via `set_config`) and is unchanged when unset (extend the M1 `events_test.sql` assertions rather than editing them).
 - **Done when:** `pnpm db:reset && pnpm db:test` green and `supabase db diff` reports no changes.
 
 ### T2.2 — `create_task_graph` and `create_run`
