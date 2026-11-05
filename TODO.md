@@ -12,6 +12,8 @@
 
 ## Milestone 1: Foundation
 
+> Built autonomously 2026-11-05: everything that needs no owner account is done and CI is green on `main`. **Open, owner-only:** branch protection and required checks (T1.3, T1.7), the hosted Supabase project, secrets and owner user (T1.9), Access, domain and `DEPLOY_ENABLED` (T1.11), keepalive dispatch (T1.12). Steps: `docs/runbooks/m1-manual-steps.md`.
+
 - [x] T1.1 — Monorepo scaffold, tooling, CLAUDE.md, gitleaks
 - [x] T1.2 — Module-boundary lint rule with fixture test
 - [ ] T1.3 — CI baseline (typecheck, lint, test) (CI green on main, red-then-green shown in docs/ci-failure-demos.md; only Aziz's branch-protection approval is open)
