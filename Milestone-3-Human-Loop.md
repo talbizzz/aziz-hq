@@ -198,6 +198,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.9 — Daily digest and delivery policy end to end
 
+> **Plan updated (implementation, 2026-11-05):** done as part of T3.6: `e2e.integration.ts` already drives the quiet-hours deferral, the off-today deferral, the daily digest (once per day, `last_digest_date`) and the failed-send retry with backoff against the real function and a mock Bot API; the fifth-failure-is-final rule is asserted in `notifications_test.sql`. Nothing beyond hosted verification (T3.11) remains.
+
 - **Depends on:** T3.6
 - **Area:** functions
 - **What:** Wire `digest.ts` and `policy.ts` into the flush path (already scaffolded in T3.6) and add the remaining behaviour: `off_today` deferral, digest batching of priority 0, `last_digest_date` handling, retry/backoff through `mark_notification`.
