@@ -154,6 +154,8 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 
 ### T4.6 — ClaudeCodeSubscriptionRunner against a recorded CLI **[local]**
 
+> **Plan updated (implementation, 2026-11-05):** `packages/agents-sdk/src/claude/runner.ts`. The runner result contract is extended **additively**: `status` may be `limit` (with `resetsAt`), plus optional `errorKind` (`auth`, `claude_failed`, `protected_tests`, `out_of_scope`, `config`, `guard_error`), `usage`, `rateLimit` and a redacted `transcript`. The process gets a **minimal environment** (PATH, HOME, LANG, TERM, TMPDIR + explicit extras + `CLAUDE_CONFIG_DIR`): no platform secret is inherited. Task payload: `prompt` (required) and optional `scope` globs. The default diff is `git add -N . && git diff HEAD` in the workdir (a failing diff read fails closed). Tests drive a fake `claude` (`packages/agents-sdk/test/fake-claude.mjs`) that replays the recorded stream. The worker's executor does not map `limit` yet: that is T4.7.
+
 - **Depends on:** T4.3, T4.4, T4.5
 - **Area:** functions
 - **What:** `ClaudeCodeSubscriptionRunner` in `packages/agents-sdk` (`claude -p --output-format stream-json --verbose --max-turns ...` in `input.workdir`, env `CLAUDE_CONFIG_DIR`, abort on `signal`, parse with T4.3, redact with T4.5, run the guards on the produced diff, map to `RunnerResult` incl. `'limit'`). The `claude` binary path is injectable.

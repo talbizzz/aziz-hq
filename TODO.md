@@ -67,7 +67,7 @@
 - [x] T4.3 — Claude stream parsing and limit detection [local]
 - [x] T4.4 — Guards: loop guard, protected tests, scope [local]
 - [x] T4.5 — Redaction [local]
-- [ ] T4.6 — ClaudeCodeSubscriptionRunner against a recorded CLI [local]
+- [x] T4.6 — ClaudeCodeSubscriptionRunner against a recorded CLI [local]
 - [ ] T4.7 — Worker integration: policy, limit handling, usage, transcripts [local]
 - [ ] T4.8 — Transcript storage and Storage RLS [local]
 - [ ] T4.9 — First real agent run [live: needs Aziz's go-ahead]
