@@ -10,7 +10,7 @@ Versions: `claude` 2.1.312; Colima 0.10.3 (Docker server 29.5.2; Docker CLI 29.8
 | S5 | Behaviour at plan limit | CONFIRMED WITH CHANGES (doc-based, live limit-hit not run) |
 | S2 | Per-task Docker sandbox + `supabase start` | CONFIRMED WITH CHANGES |
 | S3 | Vite SPA on Pages + Supabase MFA + Access (ADR-12) | CONFIRMED WITH CHANGES (local and live Cloudflare phases done; only the Workers Free CPU limit is UNVERIFIED) |
-| S4 | Telegram buttons → secure webhook (Pages Function vs Edge Function) | CONFIRMED WITH CHANGES (both variants verified against a mock Telegram API; live bot/Access UNVERIFIED) |
+| S4 | Telegram buttons → secure webhook (Pages Function vs Edge Function) | CONFIRMED WITH CHANGES (both variants verified against a mock Telegram API; Pages variant also verified live with a real bot; hosted Edge Function UNVERIFIED) |
 
 ## S1: Does headless `claude -p` expose usage / rate limits?
 - **Verdict:** CONFIRMED WITH CHANGES (the signal exists, but in a different place than assumed)
@@ -77,7 +77,7 @@ Versions: `claude` 2.1.312; Colima 0.10.3 (Docker server 29.5.2; Docker CLI 29.8
 - **Open follow-ups (need Aziz):** deploy `spikes/s3` with `wrangler pages deploy`, create the Access app, and re-run `check.spec.ts` against the deployed URL (redirect, real JWT/AUD, `pages.dev` and preview URLs, Free CPU). Owner: M1 T1.11 with those checks in its smoke script.
 
 ## S4: Can a gate be answered from Telegram inline buttons through a secure webhook?
-- **Verdict:** CONFIRMED WITH CHANGES for the handler logic, both hosting variants and idempotency (all verified locally with a mock Telegram Bot API). **UNVERIFIED** (needs Aziz: a BotFather bot, Cloudflare and a hosted Supabase project): real `setWebhook`, Telegram actually reaching the endpoint, the Access bypass policy on a live account, real press-to-edit latency, a hosted Edge Function deployment.
+- **Verdict:** CONFIRMED WITH CHANGES for the handler logic, both hosting variants and idempotency (all verified locally with a mock Telegram Bot API). **Live Telegram phase done 2026-11-05** for the Pages Function variant ([evidence](evidence/S4-live-telegram.md)): real `setWebhook`, Telegram delivering button presses, secret-token check, fail-closed owner check, near-instant edit. **UNVERIFIED:** a timed latency number, and a hosted Edge Function deployment (needs the hosted Supabase project, M1 T1.9).
 - **Evidence:** [unit tests (10 passing)](evidence/S4-unit-tests.txt), [idempotency SQL](evidence/S4-idempotency-sql.txt), [Edge Function (Deno) check](evidence/S4-edge-function-check.txt), [Pages Function checks (in the S3 run, test 7)](evidence/S3-playwright.txt); code in `spikes/s4/` (`webhook.ts`, `webhook.test.ts`, `edge/`) and `spikes/s3/functions/api/telegram/webhook.ts`.
 - **Versions:** grammy 1.46.0, Vitest 5.0.5, Deno 2.9.6 (from npm, temp directory).
 - **What we learned:**
