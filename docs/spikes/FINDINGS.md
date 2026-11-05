@@ -2,7 +2,7 @@
 
 Versions: `claude` 2.1.312; Colima 0.10.3 (Docker server 29.5.2; Docker CLI 29.8.1; macOS host, 8 GiB RAM); Supabase CLI 2.109.1 (host) / 3.0.0 (sandbox image); Node 22.23.4 (sandbox) / 24.9.0 (host); pnpm 11.21.0; vite 8.3.5; @supabase/supabase-js 2.118.0; wrangler 4.156.1; jose 6.2.15; grammy 1.46.0; Deno 2.9.6; next 16.4.3 and @opennextjs/cloudflare 1.20.15 (comparison variant only). Spike run date: 2026-11-02/03.
 
-**Go / no-go:** GO with conditions; see "Spike Outcomes and Go / No-Go" in Project-Plan.md. Aziz has not yet approved.
+**Go / no-go:** GO with conditions; see "Spike Outcomes and Go / No-Go" in Project-Plan.md. Approved by Aziz on 2026-11-05, including the ADR-5 change.
 
 | Spike | Question | Verdict |
 |---|---|---|

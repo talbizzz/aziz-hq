@@ -53,7 +53,7 @@ Everything below is fixed by Project-Raw.md and is **not re-decided** here. See 
 
 ### ADR-5: Telegram webhook is a Supabase Edge Function
 
-> **Plan updated:** Spike S4 compared a Pages Function with a Supabase Edge Function; both work against a mock Telegram API. Aziz-approval pending at the M0 go/no-go. The webhook moves to a **Supabase Edge Function** (previously a Pages Function). Reason: the service-role key stays inside Supabase and **no Cloudflare Access bypass is needed**. (2026-11-03)
+> **Plan updated:** Spike S4 compared a Pages Function with a Supabase Edge Function; both work against a mock Telegram API. Approved by Aziz at the M0 go/no-go (2026-11-05). The webhook moves to a **Supabase Edge Function** (previously a Pages Function). Reason: the service-role key stays inside Supabase and **no Cloudflare Access bypass is needed**. (2026-11-03)
 
 - **Decision:** `telegram` Supabase Edge Function (Deno), deployed with `verify_jwt = false` (Telegram cannot send a Supabase JWT), implemented with grammY on `grammy/web` (`webhookCallback(bot, "std/http", { secretToken })`, `botInfo` preset to skip `getMe`). Authentication: Telegram `secret_token` header must match (else 401, no side effect), and `from.id` **and** `chat.id` must equal the configured owner chat ID (else 200, no action, logged). Callback data is `g:<32-hex gate uuid>:<a|m|d>` (36 bytes of the 64 allowed). Idempotency: a decision table with `UNIQUE(gate_id)` using `insert ... on conflict (gate_id) do nothing returning decision`; a repeat press answers "Already decided". Gate callbacks call the same decision logic as the `resolve_gate` RPC server-side with the function's service-role key. Shared logic lives in `packages/core` (injected decision store). **Fallback (proven locally in S3/S4):** the same handler as a Pages Function (`functions/api/telegram/webhook.ts`) with a Cloudflare Access bypass for that exact path only; the dashboard middleware skips only that path. If both fail, the worker long-polls Telegram.
 - **Why:** Gates must be answerable when the laptop is off; a public endpoint is required. The Edge Function avoids storing the service-role key at Cloudflare and removes the one Access bypass hole.
@@ -179,15 +179,15 @@ aziz-hq/
 | S5 behaviour at plan limit | CONFIRMED WITH CHANGES (docs only, live test declined) | classifier + pause-until-`resetsAt`; live capture owed before M8 |
 | S2 sandbox with local Supabase | CONFIRMED WITH CHANGES | A-prime design (no docker.sock in agent container); 2-3 parallel tasks on netcup |
 | S3 SPA on Pages + MFA + Access | CONFIRMED WITH CHANGES (local only) | ADR-12 stands; ADR-10 uses `ENVIRONMENT`; Cloudflare-side checks move to M1 T1.11 |
-| S4 Telegram webhook | CONFIRMED WITH CHANGES (mock API only) | ADR-5 now an Edge Function; Pages Function proven as fallback |
+| S4 Telegram webhook | CONFIRMED WITH CHANGES (mock API; Pages variant also live) | ADR-5 now an Edge Function; Pages Function proven as fallback |
 
-**Go / no-go recommendation: GO**, with conditions. No blocker was found: usage is observable, the sandbox design works, the dashboard stack is small (46 kB Functions) and the webhook is secure and idempotent. The conditions are the unverified live-account items (Risk 8), the live limit capture (Risk 5) and Aziz's approval of the ADR-5 change. Effect on M4: no usage-estimation fallback is needed for the normal path; M4 builds the runner on `stream-json`. **Aziz has not yet approved this summary.**
+**Go / no-go recommendation: GO**, with conditions. No blocker was found: usage is observable, the sandbox design works, the dashboard stack is small (46 kB Functions) and the webhook is secure and idempotent. The conditions are the unverified live-account items (Risk 8), the live limit capture (Risk 5) and Aziz's approval of the ADR-5 change. Effect on M4: no usage-estimation fallback is needed for the normal path; M4 builds the runner on `stream-json`. **Aziz approved GO on 2026-11-05**, including the ADR-5 change, with the three conditions above carried into M1 T1.11 (Workers Free CPU), M3 (Edge Function check) and before M8 (live limit-hit capture).
 
 ## Milestones
 
 | #   | Name            | Goal                                                                          | Depends on | Status   |
 | --- | --------------- | ----------------------------------------------------------------------------- | ---------- | -------- |
-| 0   | Spikes          | Confirm or replace every risky assumption with evidence                       | —          | Executed locally; awaiting Aziz go/no-go and the live-account checks |
+| 0   | Spikes          | Confirm or replace every risky assumption with evidence                       | —          | Done 2026-11-05: GO approved; live Cloudflare and Telegram checks run; three conditions carried forward |
 | 1   | Foundation      | Monorepo, platform Supabase, core schema, CI, empty dashboard live behind Access | 0          | Detailed |
 | 2   | Engine          | Scheduler, task graph, leases, retries, gates, FakeRunner, local worker       | 1          | Stub     |
 | 3   | Human-Loop      | Gates inbox, Telegram buttons, overrides, daily digest                        | 2          | Stub     |

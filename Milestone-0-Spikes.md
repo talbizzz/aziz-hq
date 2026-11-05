@@ -140,12 +140,12 @@ Local only, never committed (names/purpose):
 
 ## Done Criteria
 
-- [ ] Every task's "Done when" met
+- [ ] Every task's "Done when" met (not fully: S5 live limit-hit capture, S4 Edge Function deployment and the Workers Free CPU measurement are open conditions of the approved GO; see Project-Plan "Spike Outcomes and Go / No-Go")
 - [x] `docs/spikes/FINDINGS.md` has S1–S5 with verdicts; `scripts/check-findings.mjs` passes
 - [x] Project-Plan.md amended wherever a verdict differs from CONFIRMED
 - [x] No secrets in the repo (`git log -p` grep for token patterns is clean)
 - [x] Spike resources cleaned (none were created on Cloudflare/Telegram; see FINDINGS): throwaway Pages project, DNS record `spike-hq`, Access app, Telegram webhook either deleted or documented for reuse in M1/M3 (state which in FINDINGS)
-- [ ] Aziz has approved go / no-go
+- [x] Aziz has approved go / no-go (2026-11-05)
 
 ## Risks & Watch-Outs
 
