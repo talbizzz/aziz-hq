@@ -30,7 +30,7 @@
 ## Milestone 2: Engine
 
 - [x] T2.1 — Dependency validation, status state machine, event data hook
-- [ ] T2.2 — create_task_graph and create_run
+- [x] T2.2 — create_task_graph and create_run
 - [ ] T2.3 — Claim, heartbeat, complete, fail
 - [ ] T2.4 — Reaper, gates, run settling, tick, worker heartbeat
 - [ ] T2.5 — Core contracts and engine actions
