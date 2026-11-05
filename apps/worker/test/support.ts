@@ -8,6 +8,7 @@ export const repoRoot = join(import.meta.dirname, '../../..');
 export interface LocalSupabase {
   url: string;
   secretKey: string;
+  publishableKey: string;
 }
 
 // Endpoints and keys of the running local stack (local development keys only).
@@ -17,7 +18,7 @@ export function localSupabase(): LocalSupabase {
     cwd: repoRoot,
   });
   const s = JSON.parse(out.slice(out.indexOf('{'))) as Record<string, string>;
-  return { url: s.API_URL!, secretKey: s.SECRET_KEY! };
+  return { url: s.API_URL!, secretKey: s.SECRET_KEY!, publishableKey: s.PUBLISHABLE_KEY! };
 }
 
 // Deliberately the plain supabase-js client with an sb_secret_ key (no fetch wrapper): the first test proves it works.

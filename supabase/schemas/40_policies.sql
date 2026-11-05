@@ -11,3 +11,5 @@ create policy owner_select on public.settings for select to authenticated using 
 
 create policy owner_update on public.settings for update to authenticated
   using (public.is_owner()) with check (public.is_owner());
+
+create policy owner_select on public.overrides for select to authenticated using (public.is_owner());

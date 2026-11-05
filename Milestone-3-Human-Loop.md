@@ -128,6 +128,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.2 — Overrides
 
+> **Plan updated (implementation, 2026-11-05):** `set_override`/`clear_override` check `auth.role() = 'service_role' or is_owner()` (pgTAP simulates the service role with `support/helpers.inc` `act_as_service()`; the integration test `pause.integration.ts` proves the real `sb_secret` key arrives as that role and the publishable key is refused). Publication membership is tracked by the diff tool, so `overrides` is added in `supabase/schemas/50_realtime.sql` only (no manual migration); M1's publication assertion in `tables_test.sql` now expects the extended table list (a deliberate contract extension, to be updated again when `notifications` joins).
+
 - **Depends on:** T3.1
 - **Area:** database
 - **What:** `overrides` table, `active_overrides` view, `set_override`, `clear_override` (owner-or-service check helper `is_owner_or_service()`), RLS/grants, realtime publication, and the `claim_task` pause check.

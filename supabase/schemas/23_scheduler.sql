@@ -35,6 +35,8 @@ begin
     and t.type in ('agent', 'system')
     and r.status in ('pending', 'running')
     and not exists (select 1 from public.tasks d where d.id = any (t.depends_on) and d.status <> 'done')
+    -- an active pause override stops claiming (gates still open)
+    and not exists (select 1 from public.overrides o where o.kind = 'pause' and o.cleared_at is null and o.expires_at > now())
   order by t.priority desc, t.created_at, t.id
   for update of t skip locked
   limit 1;

@@ -47,7 +47,7 @@
 ## Milestone 3: Human-Loop
 
 - [x] T3.1 — resolve_gate
-- [ ] T3.2 — Overrides
+- [x] T3.2 — Overrides
 - [ ] T3.3 — Notification outbox and watchdog logic
 - [ ] T3.4 — Vault, pg_net, pg_cron plumbing
 - [ ] T3.5 — Telegram core logic (pure modules)

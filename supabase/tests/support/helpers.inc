@@ -15,3 +15,10 @@ begin
   perform set_config('request.jwt.claims', '', true);
   set local role anon;
 end $$;
+
+-- Switches to service_role with a service_role JWT claim (what the API gateway sets for the secret key).
+create function pg_temp.act_as_service() returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  set local role service_role;
+end $$;
