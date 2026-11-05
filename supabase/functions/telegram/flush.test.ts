@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { processFlush, type FlushStore, type NotificationRow, type TelegramApi } from './flush.js';
+import { processFlush, type FlushStore, type NotificationRow, type TelegramApi } from './flush.ts';
 
 const TASK = '0b9c1f2e-7d4a-4e1b-9a33-5f6c8d2e1a77';
 const row = (over: Partial<NotificationRow> = {}): NotificationRow => ({

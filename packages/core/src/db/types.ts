@@ -162,6 +162,81 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          attempts: number
+          created_at: string
+          deliver_after: string
+          error: string | null
+          gate_task_id: string | null
+          id: string
+          kind: string
+          payload: Json
+          priority: number
+          run_id: string | null
+          sent_at: string | null
+          status: string
+          telegram_message_id: number | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          deliver_after?: string
+          error?: string | null
+          gate_task_id?: string | null
+          id?: string
+          kind: string
+          payload?: Json
+          priority: number
+          run_id?: string | null
+          sent_at?: string | null
+          status?: string
+          telegram_message_id?: number | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          deliver_after?: string
+          error?: string | null
+          gate_task_id?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          priority?: number
+          run_id?: string | null
+          sent_at?: string | null
+          status?: string
+          telegram_message_id?: number | null
+        }
+        Relationships: []
+      }
+      overrides: {
+        Row: {
+          cleared_at: string | null
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          kind: string
+        }
+        Insert: {
+          cleared_at?: string | null
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          kind: string
+        }
+        Update: {
+          cleared_at?: string | null
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+        }
+        Relationships: []
+      }
       runs: {
         Row: {
           config: Json
@@ -360,10 +435,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_overrides: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string | null
+          kind: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string | null
+          kind?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string | null
+          kind?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cancel_blocked_tasks: { Args: never; Returns: number }
+      check_worker_offline: { Args: never; Returns: string }
       claim_task: {
         Args: { p_lease_seconds?: number; p_worker_id: string }
         Returns: {
@@ -393,6 +492,7 @@ export type Database = {
         }
       }
       clear_event_context: { Args: never; Returns: undefined }
+      clear_override: { Args: { p_kind: string }; Returns: number }
       complete_task: {
         Args: { p_result?: Json; p_task_id: string; p_worker_id: string }
         Returns: boolean
@@ -424,6 +524,30 @@ export type Database = {
         }
         Returns: Json
       }
+      due_notifications: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempts: number
+          created_at: string
+          deliver_after: string
+          error: string | null
+          gate_task_id: string | null
+          id: string
+          kind: string
+          payload: Json
+          priority: number
+          run_id: string | null
+          sent_at: string | null
+          status: string
+          telegram_message_id: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       fail_task: {
         Args: {
           p_error?: Json
@@ -433,6 +557,7 @@ export type Database = {
         }
         Returns: string
       }
+      flush_notifications: { Args: never; Returns: undefined }
       health: { Args: never; Returns: string }
       heartbeat_task: {
         Args: {
@@ -442,15 +567,49 @@ export type Database = {
         }
         Returns: boolean
       }
+      http_post_json: {
+        Args: { p_body: Json; p_headers: Json; p_url: string }
+        Returns: number
+      }
       is_owner: { Args: never; Returns: boolean }
+      mark_notification: {
+        Args: {
+          p_defer_until?: string
+          p_error?: string
+          p_id: string
+          p_message_id?: number
+          p_status: string
+        }
+        Returns: undefined
+      }
+      next_local_midnight: {
+        Args: { p_now: string; p_tz: string }
+        Returns: string
+      }
       promote_ready_gates: { Args: never; Returns: number }
       reap_expired_leases: { Args: never; Returns: number }
+      resolve_gate: {
+        Args: {
+          p_comment?: string
+          p_decision: Database["public"]["Enums"]["gate_decision"]
+          p_task_id: string
+        }
+        Returns: Json
+      }
       scheduler_tick: { Args: never; Returns: Json }
+      send_telegram_direct: { Args: { p_text: string }; Returns: number }
       set_event_context: {
         Args: { p_actor_id: string; p_actor_type: string; p_data?: Json }
         Returns: undefined
       }
+      set_override: {
+        Args: { p_kind: string; p_minutes?: number; p_via?: string }
+        Returns: string
+      }
       settle_runs: { Args: never; Returns: number }
+      telegram_config: { Args: never; Returns: Json }
+      vault_secret: { Args: { p_name: string }; Returns: string }
+      watchdog_tick: { Args: never; Returns: string }
       worker_heartbeat: {
         Args: { p_info?: Json; p_worker_id: string }
         Returns: undefined

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compileDigest, isDigestDue, type DigestItem } from './digest.js';
+import { compileDigest, isDigestDue, type DigestItem } from './digest.ts';
 
 const item = (kind: DigestItem['kind'], title: string): DigestItem => ({
   kind,

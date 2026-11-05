@@ -68,7 +68,10 @@ jobs:
         run: supabase db reset
       - name: pgTAP
         run: supabase test db
-      - name: Integration tests (scheduler, worker processes, scripted fake run)
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: 2.x
+      - name: Integration tests (scheduler, worker processes, fake run, Telegram Edge Function)
         run: pnpm test:integration
       - name: Drift check (schemas vs migrations)
         run: bash scripts/check-drift.sh

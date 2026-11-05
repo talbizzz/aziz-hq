@@ -1,5 +1,5 @@
-import { escapeHtml } from './format.js';
-import { localDate, localMinutes, parseHHMM } from './time.js';
+import { escapeHtml } from './format.ts';
+import { localDate, localMinutes, parseHHMM } from './time.ts';
 
 export interface DigestItem {
   kind: string;

@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.base.json",
-  "compilerOptions": { "noEmit": true },
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  },
   "include": [
     "supabase/functions/telegram/*.ts",
     "scripts",
@@ -9,5 +12,6 @@
     "vitest.integration.config.ts",
     "eslint.config.js",
     "commitlint.config.js"
-  ]
+  ],
+  "exclude": ["supabase/functions/telegram/index.ts"]
 }

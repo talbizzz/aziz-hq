@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { localDate, localMinutes, nextLocalTime, parseHHMM } from './time.js';
+import { localDate, localMinutes, nextLocalTime, parseHHMM } from './time.ts';
 
 const utc = (s: string) => new Date(s);
 

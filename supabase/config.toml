@@ -373,7 +373,8 @@ authorization_url_path = "/oauth/consent"
 allow_dynamic_registration = false
 
 [edge_runtime]
-# Off until M3 adds the telegram Edge Function (saves an image pull in CI).
+# The telegram function is run for tests with plain Deno (see supabase/functions/telegram/e2e.integration.ts);
+# the edge runtime container is only needed for `supabase functions serve`, so it stays off locally and in CI.
 enabled = false
 # Supported request policies: `oneshot`, `per_worker`.
 # `per_worker` (default) — enables hot reload during local development.
@@ -414,3 +415,9 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+[functions.telegram]
+# Telegram cannot send a Supabase JWT: the function authenticates with the webhook secret token and the owner chat id.
+verify_jwt = false
+entrypoint = "./functions/telegram/index.ts"
+import_map = "./functions/telegram/deno.json"

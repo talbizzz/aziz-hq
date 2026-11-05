@@ -51,7 +51,7 @@
 - [x] T3.3 — Notification outbox and watchdog logic
 - [x] T3.4 — Vault, pg_net, pg_cron plumbing
 - [x] T3.5 — Telegram core logic (pure modules)
-- [ ] T3.6 — Edge Function entry and local end-to-end
+- [x] T3.6 — Edge Function entry and local end-to-end
 - [ ] T3.7 — Dashboard: inbox and gate detail
 - [ ] T3.8 — Dashboard: overrides, off-today, settings
 - [ ] T3.9 — Daily digest and delivery policy end to end

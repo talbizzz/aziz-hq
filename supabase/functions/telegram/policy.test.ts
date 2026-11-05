@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decideDelivery, type DeliveryContext, type PolicyNotification } from './policy.js';
+import { decideDelivery, type DeliveryContext, type PolicyNotification } from './policy.ts';
 
 const n = (
   priority: 0 | 1 | 2,

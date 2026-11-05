@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCommand } from './commands.js';
+import { parseCommand } from './commands.ts';
 
 describe('parseCommand', () => {
   it('recognises the simple commands, ignoring case and a bot suffix', () => {

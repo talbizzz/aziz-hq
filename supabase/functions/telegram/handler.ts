@@ -1,6 +1,6 @@
 import { Bot, webhookCallback } from 'grammy/web';
-import { parseCommand } from './commands.js';
-import { decisionText, escapeHtml, parseCallbackData } from './format.js';
+import { parseCommand } from './commands.ts';
+import { decisionText, escapeHtml, parseCallbackData } from './format.ts';
 
 export interface HandlerStore {
   decideGate(

@@ -1,4 +1,4 @@
-import { localMinutes, nextLocalTime, parseHHMM } from './time.js';
+import { localMinutes, nextLocalTime, parseHHMM } from './time.ts';
 
 export interface PolicyNotification {
   kind: 'gate_open' | 'run_done' | 'run_failed' | 'worker_offline' | 'worker_online';

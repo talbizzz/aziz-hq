@@ -1,7 +1,7 @@
-import { compileDigest, isDigestDue } from './digest.js';
-import { gateMessage, escapeHtml, type ReplyMarkup } from './format.js';
-import { decideDelivery, type PolicyNotification } from './policy.js';
-import { localDate } from './time.js';
+import { compileDigest, isDigestDue } from './digest.ts';
+import { gateMessage, escapeHtml, type ReplyMarkup } from './format.ts';
+import { decideDelivery, type PolicyNotification } from './policy.ts';
+import { localDate } from './time.ts';
 
 export interface NotificationRow {
   id: string;

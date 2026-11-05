@@ -8,3 +8,4 @@ supabase/migrations
 Project-Raw.md
 packages/ui/src/tokens.css
 .functions-build
+supabase/functions/**/deno.lock
