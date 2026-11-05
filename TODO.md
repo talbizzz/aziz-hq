@@ -19,7 +19,7 @@
 - [x] T1.5 — Core schema (declarative) with pgTAP tests
 - [x] T1.6 — Owner model, RLS policies and event triggers with pgTAP tests
 - [ ] T1.7 — Drift check, pgTAP and type-generation checks in CI
-- [ ] T1.8 — Core Zod schemas matching DB enums
+- [x] T1.8 — Core Zod schemas matching DB enums
 - [ ] T1.9 — Hosted platform Supabase project (manual + scripted)
 - [ ] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
 - [ ] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access
