@@ -29,6 +29,8 @@
 
 ## Milestone 2: Engine
 
+> ✅ Completed 2026-11-05 (built autonomously). All tests passing locally and in CI (pgTAP, integration, unit, e2e). Hosted application of the new migrations happens through `deploy.yml` once the owner enables it (M1 T1.9/T1.11); nothing in M2 needs a hosted account.
+
 - [x] T2.1 — Dependency validation, status state machine, event data hook
 - [x] T2.2 — create_task_graph and create_run
 - [x] T2.3 — Claim, heartbeat, complete, fail

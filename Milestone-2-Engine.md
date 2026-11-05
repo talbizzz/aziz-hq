@@ -269,13 +269,13 @@ No new GitHub secrets. Hosted application of the new migrations happens through 
 
 ## Done Criteria
 
-- [ ] Every task's "Done when" met
-- [ ] A scripted fake run (parallel tasks, a failing-then-retried task, a gate, a crashed worker whose lease expires) completes end to end (T2.9 integration test)
-- [ ] Requirements 5, 6, 7 covered by pgTAP (T2.3, T2.4) and integration tests (T2.8, T2.9)
-- [ ] Dashboard shows the run live within a few seconds (T2.11 e2e)
-- [ ] Runner interface in place with `FakeRunner` (pre-mortem #1, #3)
-- [ ] `docs/MANUAL_MIGRATIONS.md` still accurate; `supabase db diff` clean; CI green on `main` including integration tests
-- [ ] TODO.md updated; Milestone 3 detailed (already done in this planning pass)
+- [x] Every task's "Done when" met
+- [x] A scripted fake run (parallel tasks, a failing-then-retried task, a gate, a crashed worker whose lease expires) completes end to end (T2.9 integration test)
+- [x] Requirements 5, 6, 7 covered by pgTAP (T2.3, T2.4) and integration tests (T2.8, T2.9)
+- [x] Dashboard shows the run live within a few seconds (T2.11 e2e)
+- [x] Runner interface in place with `FakeRunner` (pre-mortem #1, #3)
+- [x] `docs/MANUAL_MIGRATIONS.md` still accurate; `supabase db diff` clean; CI green on `main` including integration tests
+- [x] TODO.md updated; Milestone 3 detailed (already done in this planning pass)
 
 ## Risks & Watch-Outs
 
