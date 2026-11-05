@@ -148,6 +148,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.4 — Vault, `pg_net`, `pg_cron` plumbing
 
+> **Plan updated (implementation, 2026-11-05):** `pg_cron`, `pg_net` and `supabase_vault` are all available on the local image (`pg_cron` is created in `schemas/05_extensions.sql`; the diff tool tracks extensions). All HTTP goes through the private wrapper `public.http_post_json` so pgTAP can replace it with a recorder and assert URLs, bodies and headers without sending anything; the Vault reader `vault_secret` and the wrapper are not executable by any API role. `watchdog_tick()` is the cron job body (`check_worker_offline()` then direct Bot API sends, marking `sent` with `payload.via = 'pg_net'`; without Telegram configuration the notification stays pending). Free-plan availability of the three extensions is still checked live in T3.11.
+
 - **Depends on:** T3.3
 - **Area:** database
 - **What:** Manual migration enabling `pg_net`, `pg_cron` and using `supabase_vault`; functions `telegram_config`, `send_telegram_direct`, `flush_notifications`; the two cron jobs (C2). Document `vault.create_secret` commands in `docs/runbooks/telegram-setup.md` (names only). Confirm the extensions exist on the local image and note the free-plan availability result.
