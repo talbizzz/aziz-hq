@@ -144,18 +144,21 @@ export type Database = {
       modules: {
         Row: {
           created_at: string
+          demo_note: string | null
           enabled: boolean
           id: string
           name: string
         }
         Insert: {
           created_at?: string
+          demo_note?: string | null
           enabled?: boolean
           id: string
           name: string
         }
         Update: {
           created_at?: string
+          demo_note?: string | null
           enabled?: boolean
           id?: string
           name?: string
