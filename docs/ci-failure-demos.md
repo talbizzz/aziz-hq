@@ -19,3 +19,12 @@ Throwaway PR #2 (closed without merging, branch deleted): the worker stopped cal
 | -------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | worker without the tick          | https://github.com/talbizzz/aziz-hq/actions/runs/42033282984 | `database` red at **Integration tests** (the crashed-worker and fake-run scenarios time out), `typecheck, lint, test` red (the loop unit test) |
 | `main` with the integration step | https://github.com/talbizzz/aziz-hq/actions/runs/42032485646 | all four jobs green                                                                                                                            |
+
+## Telegram delivery policy (T3.10)
+
+Throwaway PR #3 (closed without merging, branch deleted): the delivery policy ignored quiet hours and "off today".
+
+| State                                              | Run                                                          | Result                                                                                                                                                                |
+| -------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| policy ignores quiet hours                         | https://github.com/talbizzz/aziz-hq/actions/runs/42039651362 | `typecheck, lint, test` red (policy unit tests), `database` red at **Integration tests** (the Edge Function e2e: a normal gate was sent at 23:30 instead of deferred) |
+| `main` with the Telegram, inbox and overrides work | https://github.com/talbizzz/aziz-hq/actions/runs/42039635407 | all four jobs green                                                                                                                                                   |

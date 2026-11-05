@@ -55,7 +55,7 @@
 - [x] T3.7 — Dashboard: inbox and gate detail
 - [x] T3.8 — Dashboard: overrides, off-today, settings
 - [x] T3.9 — Daily digest and delivery policy end to end
-- [ ] T3.10 — CI wiring and docs
+- [x] T3.10 — CI wiring and docs
 - [ ] T3.11 — Live verification [Aziz] (needs the hosted project from M1 T1.9)
 
 ## Milestone 4: Real-Agents
