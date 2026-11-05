@@ -27,7 +27,7 @@
     "commit-msg": "pnpm exec commitlint --edit $1"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,mjs,json,md,yml,yaml,css,sql}": "prettier --write"
+    "*.{ts,tsx,js,mjs,json,md,yml,yaml,css}": "prettier --write"
   },
   "devDependencies": {
     "@commitlint/cli": "catalog:",

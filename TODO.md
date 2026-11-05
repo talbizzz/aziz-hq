@@ -16,7 +16,7 @@
 - [x] T1.2 — Module-boundary lint rule with fixture test
 - [ ] T1.3 — CI baseline (typecheck, lint, test)
 - [x] T1.4 — Local Supabase setup and DB scripts
-- [ ] T1.5 — Core schema (declarative) with pgTAP tests
+- [x] T1.5 — Core schema (declarative) with pgTAP tests
 - [ ] T1.6 — Owner model, RLS policies and event triggers with pgTAP tests
 - [ ] T1.7 — Drift check, pgTAP and type-generation checks in CI
 - [ ] T1.8 — Core Zod schemas matching DB enums

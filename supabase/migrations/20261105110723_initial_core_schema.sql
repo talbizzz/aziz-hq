@@ -1,0 +1,80 @@
+SET check_function_bodies = false;
+CREATE TYPE public.actor_type AS ENUM ('system', 'worker', 'agent', 'human');
+CREATE TYPE public.gate_decision AS ENUM ('approve', 'modify', 'dismiss', 'answer');
+CREATE TYPE public.run_status AS ENUM ('pending', 'running', 'paused', 'done', 'failed', 'cancelled');
+CREATE TYPE public.task_status AS ENUM ('pending', 'running', 'waiting_human', 'done', 'failed', 'cancelled');
+CREATE TYPE public.task_type AS ENUM ('agent', 'gate', 'system');
+CREATE FUNCTION public.gates_task_must_be_gate()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SET search_path TO ''
+AS $function$
+begin
+  if not exists (select 1 from public.tasks where id = new.task_id and type = 'gate') then
+    raise exception 'gate % must reference a task of type gate', new.task_id using errcode = 'check_violation';
+  end if;
+  return new;
+end $function$;
+CREATE TABLE public.app_owner (user_id uuid NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.app_owner ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_owner ADD CONSTRAINT app_owner_pkey PRIMARY KEY (user_id);
+ALTER TABLE public.app_owner ADD CONSTRAINT app_owner_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE RESTRICT;
+GRANT SELECT ON public.app_owner TO authenticated;
+GRANT ALL ON public.app_owner TO service_role;
+CREATE UNIQUE INDEX app_owner_single ON public.app_owner ((true));
+CREATE TABLE public.events (id bigint GENERATED ALWAYS AS IDENTITY NOT NULL, at timestamp with time zone DEFAULT now() NOT NULL, run_id uuid, task_id uuid, entity_type text NOT NULL, entity_id uuid, kind text NOT NULL, actor_type public.actor_type DEFAULT 'system'::public.actor_type NOT NULL, actor_id text, data jsonb DEFAULT '{}'::jsonb NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.events ADD CONSTRAINT events_pkey PRIMARY KEY (id);
+GRANT SELECT ON public.events TO authenticated;
+GRANT ALL ON public.events TO service_role;
+CREATE INDEX events_task_idx ON public.events (task_id, id);
+CREATE INDEX events_run_idx ON public.events (run_id, id);
+CREATE TABLE public.gates (task_id uuid NOT NULL, kind text NOT NULL, priority smallint DEFAULT 1 NOT NULL, title text NOT NULL, context jsonb DEFAULT '{}'::jsonb NOT NULL, options jsonb DEFAULT '[]'::jsonb NOT NULL, decision public.gate_decision, comment text, decided_at timestamp with time zone, decided_via text, created_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.gates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gates ADD CONSTRAINT gates_decided_via_check CHECK (decided_via = ANY (ARRAY['dashboard'::text, 'telegram'::text]));
+ALTER TABLE public.gates ADD CONSTRAINT gates_decision_matches_decided_at CHECK ((decision IS NULL) = (decided_at IS NULL));
+ALTER TABLE public.gates ADD CONSTRAINT gates_kind_check CHECK (kind = ANY (ARRAY['spec'::text, 'plan'::text, 'milestone_review'::text, 'release'::text, 'checklist'::text, 'budget'::text, 'usage_extension'::text, 'secret_request'::text, 'escalation'::text, 'other'::text]));
+ALTER TABLE public.gates ADD CONSTRAINT gates_pkey PRIMARY KEY (task_id);
+ALTER TABLE public.gates ADD CONSTRAINT gates_priority_check CHECK (priority >= 0 AND priority <= 2);
+GRANT SELECT ON public.gates TO authenticated;
+GRANT ALL ON public.gates TO service_role;
+CREATE TRIGGER gates_task_must_be_gate BEFORE INSERT OR UPDATE OF task_id ON public.gates FOR EACH ROW EXECUTE FUNCTION public.gates_task_must_be_gate();
+CREATE TABLE public.modules (id text NOT NULL, name text NOT NULL, enabled boolean DEFAULT true NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.modules ADD CONSTRAINT modules_pkey PRIMARY KEY (id);
+GRANT SELECT ON public.modules TO authenticated;
+GRANT ALL ON public.modules TO service_role;
+CREATE TABLE public.runs (id uuid DEFAULT gen_random_uuid() NOT NULL, module_id text NOT NULL, title text NOT NULL, status public.run_status DEFAULT 'pending'::public.run_status NOT NULL, config jsonb DEFAULT '{}'::jsonb NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL, finished_at timestamp with time zone);
+ALTER TABLE public.runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.runs ADD CONSTRAINT runs_module_id_fkey FOREIGN KEY (module_id) REFERENCES public.modules(id);
+ALTER TABLE public.runs ADD CONSTRAINT runs_pkey PRIMARY KEY (id);
+GRANT SELECT ON public.runs TO authenticated;
+GRANT ALL ON public.runs TO service_role;
+CREATE TABLE public.settings (key text NOT NULL, value jsonb NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings ADD CONSTRAINT settings_pkey PRIMARY KEY (key);
+GRANT SELECT, UPDATE ON public.settings TO authenticated;
+GRANT ALL ON public.settings TO service_role;
+CREATE TABLE public.tasks (id uuid DEFAULT gen_random_uuid() NOT NULL, run_id uuid NOT NULL, type public.task_type NOT NULL, role text, title text NOT NULL, status public.task_status DEFAULT 'pending'::public.task_status NOT NULL, depends_on uuid[] DEFAULT '{}'::uuid[] NOT NULL, attempts integer DEFAULT 0 NOT NULL, max_attempts integer DEFAULT 3 NOT NULL, lease_until timestamp with time zone, claimed_by text, priority integer DEFAULT 0 NOT NULL, lane text, payload jsonb DEFAULT '{}'::jsonb NOT NULL, result jsonb, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks ADD CONSTRAINT tasks_agent_has_role CHECK (type <> 'agent'::public.task_type OR role IS NOT NULL);
+ALTER TABLE public.tasks ADD CONSTRAINT tasks_attempts_check CHECK (attempts >= 0);
+ALTER TABLE public.tasks ADD CONSTRAINT tasks_lease_only_when_running CHECK (lease_until IS NULL OR status = 'running'::public.task_status);
+ALTER TABLE public.tasks ADD CONSTRAINT tasks_max_attempts_check CHECK (max_attempts >= 1);
+ALTER TABLE public.tasks ADD CONSTRAINT tasks_pkey PRIMARY KEY (id);
+ALTER TABLE public.gates ADD CONSTRAINT gates_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id) ON DELETE CASCADE;
+ALTER TABLE public.tasks ADD CONSTRAINT tasks_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.runs(id) ON DELETE CASCADE;
+GRANT SELECT ON public.tasks TO authenticated;
+GRANT ALL ON public.tasks TO service_role;
+CREATE INDEX tasks_pending_queue_idx ON public.tasks (status, priority DESC, created_at) WHERE status = 'pending'::public.task_status;
+CREATE INDEX tasks_run_status_idx ON public.tasks (run_id, status);
+CREATE TABLE public.usage (id uuid DEFAULT gen_random_uuid() NOT NULL, run_id uuid, task_id uuid, role text, model text, runner text NOT NULL, input_tokens bigint DEFAULT 0 NOT NULL, output_tokens bigint DEFAULT 0 NOT NULL, cache_read_tokens bigint DEFAULT 0 NOT NULL, cache_write_tokens bigint DEFAULT 0 NOT NULL, cost_usd numeric(12,6) DEFAULT 0 NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.usage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.usage ADD CONSTRAINT usage_pkey PRIMARY KEY (id);
+GRANT SELECT ON public.usage TO authenticated;
+GRANT ALL ON public.usage TO service_role;
+CREATE TABLE public.worker_heartbeats (worker_id text NOT NULL, last_seen_at timestamp with time zone DEFAULT now() NOT NULL, info jsonb DEFAULT '{}'::jsonb NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.worker_heartbeats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.worker_heartbeats ADD CONSTRAINT worker_heartbeats_pkey PRIMARY KEY (worker_id);
+GRANT SELECT ON public.worker_heartbeats TO authenticated;
+GRANT ALL ON public.worker_heartbeats TO service_role;
