@@ -13,5 +13,9 @@
   "devDependencies": {
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@aziz-hq/core": "workspace:*",
+    "zod": "catalog:"
   }
 }

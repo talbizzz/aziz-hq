@@ -34,7 +34,7 @@
 - [x] T2.3 — Claim, heartbeat, complete, fail
 - [x] T2.4 — Reaper, gates, run settling, tick, worker heartbeat
 - [x] T2.5 — Core contracts and engine actions
-- [ ] T2.6 — Runner interface and FakeRunner
+- [x] T2.6 — Runner interface and FakeRunner
 - [ ] T2.7 — Worker: executor, loop, heartbeat, shutdown
 - [ ] T2.8 — Integration harness, concurrency and crashed-worker tests
 - [ ] T2.9 — Fake-run scenario and the full scripted run
