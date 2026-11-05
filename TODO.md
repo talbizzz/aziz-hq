@@ -46,6 +46,8 @@
 
 ## Milestone 3: Human-Loop
 
+> Built autonomously 2026-11-05: T3.1-T3.10 done, CI green (pgTAP, integration incl. the real Edge Function under Deno, unit, e2e). **Open, owner-only: T3.11** (bot, Vault secrets, function deploy, `setWebhook`, live latency/cold start/watchdog/digest checks): `docs/runbooks/telegram-setup.md`.
+
 - [x] T3.1 — resolve_gate
 - [x] T3.2 — Overrides
 - [x] T3.3 — Notification outbox and watchdog logic

@@ -234,12 +234,12 @@ No new GitHub secrets. The Edge Function is deployed by hand in T3.11 (CLI); aut
 
 ## Done Criteria
 
-- [ ] Every task's "Done when" met
+- [ ] Every task's "Done when" met (all but T3.11, which needs the hosted project: owner)
 - [ ] Fake gate approved from Telegram on the phone; run continues; double press idempotent; foreign chat ignored (T3.6 locally, T3.11 live)
-- [ ] Requirements 2, 3, 8 covered by tests: inbox order/sort (T3.7), gate actions (T3.1, T3.7), Telegram instant/inline/digest (T3.5, T3.6, T3.9)
+- [x] Requirements 2, 3, 8 covered by tests: inbox order/sort (T3.7), gate actions (T3.1, T3.7), Telegram instant/inline/digest (T3.5, T3.6, T3.9)
 - [ ] Digest delivered; offline worker triggers exactly one Telegram alert and one recovery message (T3.3 logic, T3.11 live)
-- [ ] `pause` override stops claiming and auto-expires; "I'm off today" suppresses non-critical notifications
-- [ ] `docs/MANUAL_MIGRATIONS.md`, `docs/runbooks/telegram-setup.md` accurate; `supabase db diff` clean; CI green
+- [x] `pause` override stops claiming and auto-expires; "I'm off today" suppresses non-critical notifications
+- [x] `docs/MANUAL_MIGRATIONS.md`, `docs/runbooks/telegram-setup.md` accurate; `supabase db diff` clean; CI green
 - [ ] S4 open items (hosted Edge Function, cold start, latency) closed in `FINDINGS.md`
 - [ ] TODO.md updated; Milestone 4 detailed with `project-plan` before starting it
 
