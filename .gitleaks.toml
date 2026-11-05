@@ -3,5 +3,9 @@
 useDefault = true
 
 [allowlist]
-description = "Spike evidence and lockfile contain hashes, not secrets"
-paths = ['''pnpm-lock\.yaml''']
+description = "Lockfile hashes and the redaction test fixtures are not secrets"
+paths = [
+  '''pnpm-lock\.yaml''',
+  # intentionally contains fake, secret-shaped values to test redaction (assembled from pieces at runtime where possible)
+  '''packages/core/src/redaction/redact\.test\.ts''',
+]
