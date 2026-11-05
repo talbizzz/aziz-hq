@@ -6,7 +6,7 @@
 - [x] T0.2 — Spike S1: does headless `claude -p` expose usage / rate limits?
 - [x] T0.3 — Spike S5: behaviour when a plan limit is hit mid-task (documentation-based; live limit-hit test declined by Aziz, owed before M8)
 - [x] T0.4 — Spike S2: per-task Docker sandbox running `supabase start`
-- [ ] T0.5 — Spike S3: Vite SPA on Cloudflare Pages + Supabase Auth MFA + Access (local phase done, 5/5 checks pass; Cloudflare phase needs Aziz's credentials; moved to M1 T1.11)
+- [ ] T0.5 — Spike S3: Vite SPA on Cloudflare Pages + Supabase Auth MFA + Access (local phase done, 5/5 checks pass; live Cloudflare phase done 2026-11-05; only the Workers Free CPU limit is left, owned by M1 T1.11)
 - [ ] T0.6 — Spike S4: Telegram inline buttons → secure webhook (handler + Pages and Edge variants done, 10 unit tests + mock-API checks pass; live bot/Access/latency needs Aziz; moved to M3)
 - [ ] T0.7 — Findings doc and plan amendments (findings, check script and plan amendments done; waiting for Aziz's go/no-go approval)
 
