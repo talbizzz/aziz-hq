@@ -11,6 +11,7 @@ create table public.modules (
   id text primary key,
   name text not null,
   enabled boolean not null default true,
+  demo_note text,
   created_at timestamptz not null default now()
 );
 
