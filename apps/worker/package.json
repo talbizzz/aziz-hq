@@ -8,10 +8,19 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "start": "tsx src/main.ts"
   },
   "devDependencies": {
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "tsx": "catalog:",
+    "@types/node": "catalog:"
+  },
+  "dependencies": {
+    "@aziz-hq/agents-sdk": "workspace:*",
+    "@aziz-hq/core": "workspace:*",
+    "@supabase/supabase-js": "catalog:",
+    "zod": "catalog:"
   }
 }
