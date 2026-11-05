@@ -5,7 +5,7 @@ Plan: [Project-Plan.md](Project-Plan.md). Current work: the milestone named in [
 ## Hard rules
 
 - **Local Supabase only for tests.** Never touch the hosted database from tests or scripts you run by hand.
-- **Project ref from the environment.** Pass `--project-ref "$SUPABASE_PROJECT_REF"` explicitly. Never run `supabase link`.
+- **Explicit hosted target.** `pnpm db:push` needs `SUPABASE_PROJECT_REF` and a `SUPABASE_DB_URL` that belongs to it (`supabase db push` has no `--project-ref`); other CLI commands take the ref from the environment. Never run `supabase link`.
 - **Schema changes only in `supabase/schemas/`**, then generate the migration with `pnpm db:diff`. The only hand-written migrations are the ones listed in [docs/MANUAL_MIGRATIONS.md](docs/MANUAL_MIGRATIONS.md).
 - **Module boundaries (ADR-8, lint-enforced):** `modules/*` import only from `packages/*` and themselves; `packages/*` never import `apps/*` or `modules/*`; cross-workspace imports use package entry points (`@aziz-hq/core`), never another workspace's `src/`.
 - **Manual migrations are mirrored in the schemas** when the diff tool tracks the object (publication membership, default ACLs); it never emits REVOKEs, so revokes live in a listed manual migration. Run `supabase db diff` after `db:reset`: it must print "No schema changes found".

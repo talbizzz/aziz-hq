@@ -14,16 +14,16 @@
 
 - [x] T1.1 — Monorepo scaffold, tooling, CLAUDE.md, gitleaks
 - [x] T1.2 — Module-boundary lint rule with fixture test
-- [ ] T1.3 — CI baseline (typecheck, lint, test)
+- [ ] T1.3 — CI baseline (typecheck, lint, test) (ci.yml written; waiting for first green run and Aziz's branch-protection approval)
 - [x] T1.4 — Local Supabase setup and DB scripts
 - [x] T1.5 — Core schema (declarative) with pgTAP tests
 - [x] T1.6 — Owner model, RLS policies and event triggers with pgTAP tests
-- [ ] T1.7 — Drift check, pgTAP and type-generation checks in CI
+- [ ] T1.7 — Drift check, pgTAP and type-generation checks in CI (database job written, drift and types failure modes shown locally; waiting for a green run and branch protection)
 - [x] T1.8 — Core Zod schemas matching DB enums
-- [ ] T1.9 — Hosted platform Supabase project (manual + scripted)
+- [ ] T1.9 — Hosted platform Supabase project (manual + scripted) (deploy.yml, verify-hosted.ts, runbook done; needs Aziz: Supabase project, secrets, owner user)
 - [x] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
-- [ ] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access
-- [ ] T1.12 — Keepalive workflow
+- [ ] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access (wrangler config, deploy job, size gate, smoke script, runbook done; needs Aziz: Access app, domain, secrets)
+- [ ] T1.12 — Keepalive workflow (keepalive.yml written; needs the hosted project and a manual dispatch)
 
 ## Milestone 2: Engine
 

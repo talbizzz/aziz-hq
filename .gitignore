@@ -21,3 +21,4 @@ spikes/**/.access-jwks.json
 spikes/**/dist
 test-results
 playwright-report
+.functions-build

@@ -7,3 +7,4 @@ packages/core/src/db/types.ts
 supabase/migrations
 Project-Raw.md
 packages/ui/src/tokens.css
+.functions-build

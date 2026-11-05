@@ -4,7 +4,16 @@ import boundaries from './eslint-rules/workspace-imports.js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/**', '**/dist/**', '**/.turbo/**', 'spikes/**', '**/db/types.ts'] },
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.turbo/**',
+      '**/.functions-build/**',
+      'spikes/**',
+      '**/db/types.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },

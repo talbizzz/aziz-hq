@@ -1,0 +1,28 @@
+name: Keepalive
+
+# Supabase free projects pause after 7 days of inactivity. Day-of-month "*/3" resets at month end
+# (days 1, 4, ... 31, then 1), so the longest gap is 4 days, still under 7.
+on:
+  schedule:
+    - cron: '17 6 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call public.health()
+        env:
+          URL: ${{ vars.VITE_SUPABASE_URL }}
+          KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then echo "VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY variables are not set" >&2; exit 1; fi
+          body="$(mktemp)"
+          code="$(curl -sS -o "$body" -w '%{http_code}' -X POST "$URL/rest/v1/rpc/health" \
+            -H "apikey: $KEY" -H 'Content-Type: application/json' -d '{}')"
+          echo "HTTP $code"
+          [ "$code" = "200" ] || { echo "unexpected status" >&2; exit 1; }
+          [ "$(cat "$body")" = '"ok"' ] || { echo "unexpected body" >&2; exit 1; }

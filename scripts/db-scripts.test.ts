@@ -1,24 +1,63 @@
 import { spawnSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const root = join(import.meta.dirname, '..');
 
 describe('db scripts', () => {
+  const REF = 'abcdefghijklmnopqrst';
+  const URL_OK = `postgresql://postgres.${REF}:pw@aws-0-eu-central-1.pooler.supabase.com:5432/postgres`;
+
+  // Runs db-push.sh with a fake `supabase` first on PATH that records its arguments.
+  function runPush(env: Record<string, string | undefined>) {
+    const dir = mkdtempSync(join(tmpdir(), 'fake-supabase-'));
+    const log = join(dir, 'args.txt');
+    writeFileSync(join(dir, 'supabase'), `#!/usr/bin/env bash\necho "$@" > "${log}"\n`, {
+      mode: 0o755,
+    });
+    const base = { ...process.env, PATH: `${dir}:${process.env.PATH}` } as Record<
+      string,
+      string | undefined
+    >;
+    for (const k of ['SUPABASE_PROJECT_REF', 'SUPABASE_DB_URL', 'CONFIRM']) delete base[k];
+    const r = spawnSync('bash', ['scripts/db-push.sh'], {
+      cwd: root,
+      env: { ...base, ...env },
+      encoding: 'utf8',
+    });
+    return { ...r, args: existsSync(log) ? readFileSync(log, 'utf8').trim() : null };
+  }
+
   it('db:push refuses to run when SUPABASE_PROJECT_REF is unset', () => {
-    const env = { ...process.env };
-    delete env.SUPABASE_PROJECT_REF;
-    const r = spawnSync('bash', ['scripts/db-push.sh'], { cwd: root, env, encoding: 'utf8' });
+    const r = runPush({ SUPABASE_DB_URL: URL_OK });
     expect(r.status).not.toBe(0);
     expect(r.stderr).toContain('SUPABASE_PROJECT_REF');
+    expect(r.args).toBeNull();
   });
 
-  it('db:push passes the project ref explicitly and dry-runs unless CONFIRM=1', () => {
-    const src = readFileSync(join(root, 'scripts/db-push.sh'), 'utf8');
-    expect(src).toContain('--project-ref "$SUPABASE_PROJECT_REF"');
-    expect(src).toContain('--dry-run');
-    expect(src).toContain('CONFIRM');
+  it('db:push refuses without SUPABASE_DB_URL, and when the URL belongs to another project', () => {
+    const missing = runPush({ SUPABASE_PROJECT_REF: REF });
+    expect(missing.status).not.toBe(0);
+    expect(missing.stderr).toContain('SUPABASE_DB_URL');
+    const other = runPush({
+      SUPABASE_PROJECT_REF: REF,
+      SUPABASE_DB_URL: URL_OK.replace(REF, 'zzzzzzzzzzzzzzzzzzzz'),
+    });
+    expect(other.status).not.toBe(0);
+    expect(other.stderr).toContain('does not belong');
+    expect(missing.args).toBeNull();
+    expect(other.args).toBeNull();
+  });
+
+  it('db:push targets the explicit URL and dry-runs unless CONFIRM=1', () => {
+    const dry = runPush({ SUPABASE_PROJECT_REF: REF, SUPABASE_DB_URL: URL_OK });
+    expect(dry.status).toBe(0);
+    expect(dry.args).toBe(`db push --db-url ${URL_OK} --dry-run`);
+    const real = runPush({ SUPABASE_PROJECT_REF: REF, SUPABASE_DB_URL: URL_OK, CONFIRM: '1' });
+    expect(real.status).toBe(0);
+    expect(real.args).toBe(`db push --db-url ${URL_OK}`);
   });
 
   it('no script, workflow or package.json runs `supabase link`', () => {

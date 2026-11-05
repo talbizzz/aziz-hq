@@ -21,7 +21,9 @@
     "db:types": "bash scripts/db-types.sh",
     "db:push": "bash scripts/db-push.sh",
     "create-owner": "tsx scripts/create-owner.ts",
-    "tokens:build": "pnpm --filter @aziz-hq/ui tokens:build"
+    "tokens:build": "pnpm --filter @aziz-hq/ui tokens:build",
+    "db:drift": "bash scripts/check-drift.sh",
+    "db:types:check": "pnpm db:types && git diff --exit-code packages/core/src/db/types.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged && gitleaks git --pre-commit --staged --redact --no-banner",

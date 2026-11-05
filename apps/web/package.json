@@ -8,7 +8,9 @@
     "build": "vite build",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p functions/tsconfig.json",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "deploy:pages": "wrangler pages deploy dist --project-name aziz-hq-web --branch main",
+    "functions:build": "wrangler pages functions build --outdir .functions-build"
   },
   "dependencies": {
     "@aziz-hq/core": "workspace:*",
