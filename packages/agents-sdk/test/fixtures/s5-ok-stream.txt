@@ -1,0 +1,4 @@
+# Derived from real S1 capture shape (allowed windows).
+# exit=0
+{"type":"rate_limit_event","rate_limit_info":{"status":"allowed","resetsAt":1793640600,"rateLimitType":"five_hour","unifiedWindows":{"five_hour":{"utilization":0.02,"resetsAt":1793640600,"status":"allowed"},"seven_day":{"utilization":0.09,"resetsAt":1794110400,"status":"allowed"}}}}
+{"type":"result","subtype":"success","is_error":false,"result":"OK"}

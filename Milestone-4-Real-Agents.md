@@ -126,6 +126,8 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 
 ### T4.3 — Claude stream parsing and limit detection **[local]**
 
+> **Plan updated (implementation, 2026-11-05):** `packages/agents-sdk/src/claude/` (`parseClaudeStream`, `classifyClaudeFailure`, `extractResetsAt` returning a `Date`, shared `events.ts`). Fixtures live in `packages/agents-sdk/test/fixtures/`: `claude-stream-recorded.jsonl` is the **real** S1 recording (utilization is a fraction: 0.15 = 15%, +-1 pp), the `s5-*.txt` files are the **DOCUMENTED** S5 shapes (not live captures). Percentages are rounded to two decimals.
+
 - **Depends on:** —
 - **Area:** shared
 - **What:** C3 (`parseClaudeStream`, `classifyClaudeFailure`, `extractResetsAt`) in `packages/agents-sdk/src/claude`.

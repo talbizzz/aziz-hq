@@ -1,0 +1,3 @@
+# DOCUMENTED fixture (not captured).
+# exit=1
+{"type":"result","subtype":"success","is_error":true,"result":"Not logged in · Please run /login"}

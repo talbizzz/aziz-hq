@@ -1,0 +1,4 @@
+# DOCUMENTED fixture (not captured). rate_limit_event shape from S1 capture; status value for a blocked window is assumed ("rejected").
+# exit=1
+{"type":"rate_limit_event","rate_limit_info":{"status":"rejected","resetsAt":1793640600,"rateLimitType":"five_hour","unifiedWindows":{"five_hour":{"utilization":1,"resetsAt":1793640600,"status":"rejected"},"seven_day":{"utilization":0.1,"resetsAt":1794110400,"status":"allowed"}}}}
+{"type":"result","subtype":"success","is_error":true,"result":"You've hit your session limit","session_id":"<redacted>"}
