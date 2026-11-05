@@ -44,6 +44,11 @@ stable
 set search_path = ''
 as $$ select nullif(current_setting('app.actor_id', true), '') $$;
 
+revoke all on function public.current_actor_type() from public, anon, authenticated;
+revoke all on function public.current_actor_id() from public, anon, authenticated;
+-- Called by the event triggers, which run as the invoking role (the worker uses service_role).
+grant execute on function public.current_actor_type(), public.current_actor_id() to service_role;
+
 -- Requirement 7: every status change produces an event (ADR-3). Used on runs and tasks.
 create function public.log_status_event() returns trigger
 language plpgsql

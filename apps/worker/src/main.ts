@@ -17,16 +17,9 @@ const runnerConfig = runnerConfigSchema.parse(
   JSON.parse(readFileSync(new URL('../runners.config.json', import.meta.url), 'utf8')),
 );
 
-// sb_secret_ keys are not JWTs: they go in the apikey header only, never as a Bearer token.
+// supabase-js sends sb_secret_ keys as the apikey header (verified by the integration tests).
 const client = createClient<Database>(config.supabaseUrl, config.supabaseSecretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
-  global: {
-    fetch: (input, init) => {
-      const headers = new Headers(init?.headers);
-      if (config.supabaseSecretKey.startsWith('sb_secret_')) headers.delete('Authorization');
-      return fetch(input, { ...init, headers });
-    },
-  },
 });
 
 const events: EventSink = async (task, runnerEvents) => {

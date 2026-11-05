@@ -216,6 +216,8 @@ Realtime hook `useRealtimeInvalidation(tables, runId)`: `supabase.realtime.setAu
 
 ### T2.8 — Integration harness, concurrency and crashed-worker tests
 
+> **Plan updated (implementation, 2026-11-05):** integration files are named `*.integration.ts` (not `.integration.test.ts`) so the default `pnpm test` never picks them up; `pnpm test:integration` uses `vitest.integration.config.ts`. Verified: plain supabase-js with an `sb_secret_` key works as the service client (no Authorization-stripping wrapper needed). The integration run found a bug pgTAP could not: the worker runs as `service_role`, which lacked EXECUTE on `current_actor_type()`/`current_actor_id()` used by the event triggers; fixed with explicit grants and a pgTAP test that runs the scheduler flow as `service_role` (`supabase/tests/service_role_test.sql`). **Lesson for later milestones: every new function a trigger or RPC calls needs a grant for the role that executes it, and pgTAP must exercise the flow as that role.**
+
 - **Depends on:** T2.4, T2.7
 - **Area:** infra
 - **What:** `vitest.integration.config.ts` (project `integration`, `*.integration.test.ts`, run serially against the local stack); `pnpm test:integration` script; helper `test-support/local-supabase.ts` (reads `supabase status -o json`, service client, truncates run data between tests). Default `pnpm test` excludes integration tests. Resolve the `sb_secret_` question from Context here and record the outcome in the Plan-updated note if the approach changes.

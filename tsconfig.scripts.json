@@ -5,6 +5,7 @@
     "scripts",
     "eslint-rules",
     "vitest.config.ts",
+    "vitest.integration.config.ts",
     "eslint.config.js",
     "commitlint.config.js"
   ]

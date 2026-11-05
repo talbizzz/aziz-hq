@@ -10,6 +10,7 @@ Plan: [Project-Plan.md](Project-Plan.md). Current work: the milestone named in [
 - **Module boundaries (ADR-8, lint-enforced):** `modules/*` import only from `packages/*` and themselves; `packages/*` never import `apps/*` or `modules/*`; cross-workspace imports use package entry points (`@aziz-hq/core`), never another workspace's `src/`.
 - **Manual migrations are mirrored in the schemas** when the diff tool tracks the object (publication membership, default ACLs); it never emits REVOKEs, so revokes live in a listed manual migration. Run `supabase db diff` after `db:reset`: it must print "No schema changes found".
 - **Every new table needs explicit grants** in `supabase/schemas/15_grants.sql` (default privileges are revoked by a manual migration); RLS on, `anon` gets nothing.
+- **Test as the role that runs the code.** pgTAP runs as the superuser; the worker is `service_role` and the dashboard `authenticated`. New functions need explicit grants for the role that executes them (including helpers called from triggers) and a pgTAP case that runs the flow as that role (see `supabase/tests/service_role_test.sql`).
 - **No secrets** in the repo, docs, commits or logs. Names only in `.env.example`. gitleaks runs in the pre-commit hook and in CI.
 - **Production is off limits** (migrations, deploys, data changes) unless the owner explicitly asks in that session.
 

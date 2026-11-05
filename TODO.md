@@ -36,7 +36,7 @@
 - [x] T2.5 — Core contracts and engine actions
 - [x] T2.6 — Runner interface and FakeRunner
 - [x] T2.7 — Worker: executor, loop, heartbeat, shutdown
-- [ ] T2.8 — Integration harness, concurrency and crashed-worker tests
+- [x] T2.8 — Integration harness, concurrency and crashed-worker tests
 - [ ] T2.9 — Fake-run scenario and the full scripted run
 - [ ] T2.10 — Worker in local Docker
 - [ ] T2.11 — Dashboard: runs list and live run view
