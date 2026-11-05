@@ -65,7 +65,7 @@
 - [x] T4.1 — Usage policy engine [local]
 - [ ] T4.2 — Usage snapshots and overrides schema [local]
 - [x] T4.3 — Claude stream parsing and limit detection [local]
-- [ ] T4.4 — Guards: loop guard, protected tests, scope [local]
+- [x] T4.4 — Guards: loop guard, protected tests, scope [local]
 - [ ] T4.5 — Redaction [local]
 - [ ] T4.6 — ClaudeCodeSubscriptionRunner against a recorded CLI [local]
 - [ ] T4.7 — Worker integration: policy, limit handling, usage, transcripts [local]
