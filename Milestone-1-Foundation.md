@@ -44,17 +44,17 @@ create type public.actor_type   as enum ('system','worker','agent','human');
 
 ### C2 — Tables (all in `public`, all with RLS enabled, all `created_at timestamptz not null default now()` unless noted)
 
-| Table | Columns (type, constraints) |
-|---|---|
-| `app_owner` | `user_id uuid primary key references auth.users(id) on delete restrict`; unique index `app_owner_single on app_owner ((true))` |
-| `modules` | `id text primary key` (e.g. `factory`); `name text not null`; `enabled boolean not null default true` |
-| `runs` | `id uuid pk default gen_random_uuid()`; `module_id text not null references modules(id)`; `title text not null`; `status run_status not null default 'pending'`; `config jsonb not null default '{}'`; `updated_at timestamptz not null default now()`; `finished_at timestamptz` |
-| `tasks` | `id uuid pk default gen_random_uuid()`; `run_id uuid not null references runs(id) on delete cascade`; `type task_type not null`; `role text` (check: not null when `type='agent'`); `title text not null`; `status task_status not null default 'pending'`; `depends_on uuid[] not null default '{}'`; `attempts int not null default 0 check (attempts >= 0)`; `max_attempts int not null default 3 check (max_attempts >= 1)`; `lease_until timestamptz`; `claimed_by text`; `priority int not null default 0`; `lane text`; `payload jsonb not null default '{}'`; `result jsonb`; `updated_at timestamptz not null default now()`. Index `(run_id, status)`, index `(status, priority desc, created_at)` where `status='pending'`. Check: `lease_until is null or status = 'running'`. |
-| `gates` | `task_id uuid primary key references tasks(id) on delete cascade`; `kind text not null` (one of `spec`,`plan`,`milestone_review`,`release`,`checklist`,`budget`,`usage_extension`,`secret_request`,`escalation`,`other`); `priority smallint not null default 1 check (priority between 0 and 2)` (0 info, 1 normal, 2 blocking); `title text not null`; `context jsonb not null default '{}'`; `options jsonb not null default '[]'`; `decision gate_decision`; `comment text`; `decided_at timestamptz`; `decided_via text check (decided_via in ('dashboard','telegram'))`. Check: `(decision is null) = (decided_at is null)`. Trigger: task referenced must have `type='gate'`. |
-| `events` | `id bigint generated always as identity primary key`; `at timestamptz not null default now()`; `run_id uuid`; `task_id uuid`; `entity_type text not null`; `entity_id uuid`; `kind text not null`; `actor_type actor_type not null default 'system'`; `actor_id text`; `data jsonb not null default '{}'`. Index `(run_id, id)`, `(task_id, id)`. **Append-only**: `before update or delete` trigger raises exception (applies to service role too). No FKs (events must survive deletions). |
-| `usage` | `id uuid pk default gen_random_uuid()`; `run_id uuid`; `task_id uuid`; `role text`; `model text`; `runner text not null`; `input_tokens bigint not null default 0`; `output_tokens bigint not null default 0`; `cache_read_tokens bigint not null default 0`; `cache_write_tokens bigint not null default 0`; `cost_usd numeric(12,6) not null default 0`. Empty until M4. |
-| `worker_heartbeats` | `worker_id text primary key`; `last_seen_at timestamptz not null default now()`; `info jsonb not null default '{}'` |
-| `settings` | `key text primary key`; `value jsonb not null`; `updated_at timestamptz not null default now()` |
+| Table               | Columns (type, constraints)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app_owner`         | `user_id uuid primary key references auth.users(id) on delete restrict`; unique index `app_owner_single on app_owner ((true))`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `modules`           | `id text primary key` (e.g. `factory`); `name text not null`; `enabled boolean not null default true`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `runs`              | `id uuid pk default gen_random_uuid()`; `module_id text not null references modules(id)`; `title text not null`; `status run_status not null default 'pending'`; `config jsonb not null default '{}'`; `updated_at timestamptz not null default now()`; `finished_at timestamptz`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `tasks`             | `id uuid pk default gen_random_uuid()`; `run_id uuid not null references runs(id) on delete cascade`; `type task_type not null`; `role text` (check: not null when `type='agent'`); `title text not null`; `status task_status not null default 'pending'`; `depends_on uuid[] not null default '{}'`; `attempts int not null default 0 check (attempts >= 0)`; `max_attempts int not null default 3 check (max_attempts >= 1)`; `lease_until timestamptz`; `claimed_by text`; `priority int not null default 0`; `lane text`; `payload jsonb not null default '{}'`; `result jsonb`; `updated_at timestamptz not null default now()`. Index `(run_id, status)`, index `(status, priority desc, created_at)` where `status='pending'`. Check: `lease_until is null or status = 'running'`. |
+| `gates`             | `task_id uuid primary key references tasks(id) on delete cascade`; `kind text not null` (one of `spec`,`plan`,`milestone_review`,`release`,`checklist`,`budget`,`usage_extension`,`secret_request`,`escalation`,`other`); `priority smallint not null default 1 check (priority between 0 and 2)` (0 info, 1 normal, 2 blocking); `title text not null`; `context jsonb not null default '{}'`; `options jsonb not null default '[]'`; `decision gate_decision`; `comment text`; `decided_at timestamptz`; `decided_via text check (decided_via in ('dashboard','telegram'))`. Check: `(decision is null) = (decided_at is null)`. Trigger: task referenced must have `type='gate'`.                                                                                                       |
+| `events`            | `id bigint generated always as identity primary key`; `at timestamptz not null default now()`; `run_id uuid`; `task_id uuid`; `entity_type text not null`; `entity_id uuid`; `kind text not null`; `actor_type actor_type not null default 'system'`; `actor_id text`; `data jsonb not null default '{}'`. Index `(run_id, id)`, `(task_id, id)`. **Append-only**: `before update or delete` trigger raises exception (applies to service role too). No FKs (events must survive deletions).                                                                                                                                                                                                                                                                                               |
+| `usage`             | `id uuid pk default gen_random_uuid()`; `run_id uuid`; `task_id uuid`; `role text`; `model text`; `runner text not null`; `input_tokens bigint not null default 0`; `output_tokens bigint not null default 0`; `cache_read_tokens bigint not null default 0`; `cache_write_tokens bigint not null default 0`; `cost_usd numeric(12,6) not null default 0`. Empty until M4.                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `worker_heartbeats` | `worker_id text primary key`; `last_seen_at timestamptz not null default now()`; `info jsonb not null default '{}'`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `settings`          | `key text primary key`; `value jsonb not null`; `updated_at timestamptz not null default now()`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 Seed (`supabase/seed.sql`, local only): `modules` row `('factory','SaaS Factory')`. The same row for hosted goes in a manual migration (DML) listed in `docs/MANUAL_MIGRATIONS.md`.
 
@@ -81,26 +81,44 @@ Seed (`supabase/seed.sql`, local only): `modules` row `('factory','SaaS Factory'
 
 ```ts
 // packages/core/src/domain/enums.ts — values MUST equal the DB enums in C1
-export const taskStatus = z.enum(['pending','running','waiting_human','done','failed','cancelled']);
-export const taskType = z.enum(['agent','gate','system']);
-export const runStatus = z.enum(['pending','running','paused','done','failed','cancelled']);
-export const gateDecision = z.enum(['approve','modify','dismiss','answer']);
-export const actorType = z.enum(['system','worker','agent','human']);
-export const gateKind = z.enum(['spec','plan','milestone_review','release','checklist','budget','usage_extension','secret_request','escalation','other']);
+export const taskStatus = z.enum([
+  'pending',
+  'running',
+  'waiting_human',
+  'done',
+  'failed',
+  'cancelled',
+]);
+export const taskType = z.enum(['agent', 'gate', 'system']);
+export const runStatus = z.enum(['pending', 'running', 'paused', 'done', 'failed', 'cancelled']);
+export const gateDecision = z.enum(['approve', 'modify', 'dismiss', 'answer']);
+export const actorType = z.enum(['system', 'worker', 'agent', 'human']);
+export const gateKind = z.enum([
+  'spec',
+  'plan',
+  'milestone_review',
+  'release',
+  'checklist',
+  'budget',
+  'usage_extension',
+  'secret_request',
+  'escalation',
+  'other',
+]);
 ```
 
 Generated DB types: `packages/core/src/db/types.ts` via `pnpm db:types` (`supabase gen types typescript --local`).
 
 ### C7 — Dashboard route contract (`apps/web`)
 
-| Route | Auth requirement | Behaviour |
-|---|---|---|
-| `/login` | Access JWT valid; no session | Email + password form → on success redirect to `/mfa` |
-| `/mfa` | Access JWT valid; session at aal1 | If no verified TOTP factor: enroll (show QR + secret), then verify code; else verify code. On success redirect to `/` |
-| `/` | Access JWT valid; session aal2; `is_owner()` true | Empty dashboard shell: header (title "Aziz HQ", sign-out button), left nav with disabled placeholders "Inbox", "Runs", "Settings", empty state "No gates. Nothing running." |
-| `/api/health` (Pages Function) | Access JWT valid | `200 {"status":"ok"}` |
-| anything without a session (SPA) | — | client-side redirect to `/login` |
-| Without valid Access JWT (any request, including static assets and `pages.dev`) | — | `403` plain text from `functions/_middleware.ts`, before anything else (ADR-10). Missing config in production → `500` (fail closed) |
+| Route                                                                           | Auth requirement                                  | Behaviour                                                                                                                                                                   |
+| ------------------------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/login`                                                                        | Access JWT valid; no session                      | Email + password form → on success redirect to `/mfa`                                                                                                                       |
+| `/mfa`                                                                          | Access JWT valid; session at aal1                 | If no verified TOTP factor: enroll (show QR + secret), then verify code; else verify code. On success redirect to `/`                                                       |
+| `/`                                                                             | Access JWT valid; session aal2; `is_owner()` true | Empty dashboard shell: header (title "Aziz HQ", sign-out button), left nav with disabled placeholders "Inbox", "Runs", "Settings", empty state "No gates. Nothing running." |
+| `/api/health` (Pages Function)                                                  | Access JWT valid                                  | `200 {"status":"ok"}`                                                                                                                                                       |
+| anything without a session (SPA)                                                | —                                                 | client-side redirect to `/login`                                                                                                                                            |
+| Without valid Access JWT (any request, including static assets and `pages.dev`) | —                                                 | `403` plain text from `functions/_middleware.ts`, before anything else (ADR-10). Missing config in production → `500` (fail closed)                                         |
 
 The SPA route guard is UX only; data protection is RLS + `is_owner()` (a user at aal1 who bypasses the guard still reads 0 rows).
 
@@ -109,6 +127,8 @@ Test IDs (`data-testid`): `login-email`, `login-password`, `login-submit`, `mfa-
 ## Tasks
 
 ### T1.1 — Monorepo scaffold, tooling, CLAUDE.md, gitleaks
+
+> **Plan updated (implementation, 2026-11-05):** Node 24 (the installed LTS, `.nvmrc` = 24, `engines.node` `>=24`) instead of 22. TypeScript is pinned to `~6.0.3`: typescript-eslint 8.72 refuses TypeScript 7, and the plan requires a single TS version (revisit when typescript-eslint supports 7.x; the spikes used 7.0 and are unaffected). Vitest 5 runs all workspaces from one root `vitest.config.ts` (`projects`). pnpm 11 needs `allowBuilds` in `pnpm-workspace.yaml`.
 
 - **Depends on:** —
 - **Area:** infra
@@ -184,7 +204,7 @@ Test IDs (`data-testid`): `login-email`, `login-password`, `login-submit`, `mfa-
 
 ### T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
 
-> **Plan updated (M0 findings, 2026-11-03):** (1) the MFA page must remove stale *unverified* TOTP factors before `mfa.enroll` (else `mfa_factor_name_conflict` on a second visit) and pass a unique `friendlyName`. (2) Realtime: call `supabase.realtime.setAuth(access_token)` before subscribing, and refetch the affected queries after `SUBSCRIBED` plus a moment (rows inserted between `SUBSCRIBED` and the active `postgres_changes` subscription are lost). (3) `_middleware.ts` uses an explicit `ENVIRONMENT` var (not `NODE_ENV`): unset Access vars + `ENVIRONMENT != 'development'` -> 500. (4) e2e: wrap TOTP generation with `otplib` 13 (`generate({secret})`).
+> **Plan updated (M0 findings, 2026-11-03):** (1) the MFA page must remove stale _unverified_ TOTP factors before `mfa.enroll` (else `mfa_factor_name_conflict` on a second visit) and pass a unique `friendlyName`. (2) Realtime: call `supabase.realtime.setAuth(access_token)` before subscribing, and refetch the affected queries after `SUBSCRIBED` plus a moment (rows inserted between `SUBSCRIBED` and the active `postgres_changes` subscription are lost). (3) `_middleware.ts` uses an explicit `ENVIRONMENT` var (not `NODE_ENV`): unset Access vars + `ENVIRONMENT != 'development'` -> 500. (4) e2e: wrap TOTP generation with `otplib` 13 (`generate({secret})`).
 
 - **Depends on:** T1.6, T1.8
 - **Area:** web
@@ -217,16 +237,16 @@ Test IDs (`data-testid`): `login-email`, `login-password`, `login-submit`, `mfa-
 
 New names only (never values):
 
-| Name | Where | Purpose |
-|---|---|---|
-| `SUPABASE_PROJECT_REF` | local env, GH secret | explicit project ref for `db:push` / deploy |
-| `SUPABASE_ACCESS_TOKEN` | GH secret | Supabase CLI auth in deploy job |
-| `SUPABASE_DB_PASSWORD` | GH secret | `db push` |
-| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | GH variables, `.env.local` | dashboard + keepalive |
-| `SUPABASE_SERVICE_ROLE_KEY` | Aziz's shell only (owner creation), later worker env | admin tasks; never in GH or the web app |
-| `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` | Pages (Functions) secrets | Access JWT verification (ADR-10) |
-| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GH secrets | wrangler deploy |
-| `OWNER_EMAIL`, `OWNER_PASSWORD` | Aziz's shell only | `create-owner.ts` |
+| Name                                                 | Where                                                | Purpose                                     |
+| ---------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------- |
+| `SUPABASE_PROJECT_REF`                               | local env, GH secret                                 | explicit project ref for `db:push` / deploy |
+| `SUPABASE_ACCESS_TOKEN`                              | GH secret                                            | Supabase CLI auth in deploy job             |
+| `SUPABASE_DB_PASSWORD`                               | GH secret                                            | `db push`                                   |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | GH variables, `.env.local`                           | dashboard + keepalive                       |
+| `SUPABASE_SERVICE_ROLE_KEY`                          | Aziz's shell only (owner creation), later worker env | admin tasks; never in GH or the web app     |
+| `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`             | Pages (Functions) secrets                            | Access JWT verification (ADR-10)            |
+| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`      | GH secrets                                           | wrangler deploy                             |
+| `OWNER_EMAIL`, `OWNER_PASSWORD`                      | Aziz's shell only                                    | `create-owner.ts`                           |
 
 ## Done Criteria
 

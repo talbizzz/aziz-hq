@@ -1,0 +1,40 @@
+{
+  "name": "aziz-hq",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck && tsc -p tsconfig.scripts.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged && gitleaks git --pre-commit --staged --redact --no-banner",
+    "commit-msg": "pnpm exec commitlint --edit $1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,json,md,yml,yaml,css,sql}": "prettier --write"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
+    "@eslint/js": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "lint-staged": "catalog:",
+    "prettier": "catalog:",
+    "simple-git-hooks": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:"
+  }
+}

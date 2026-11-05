@@ -1,0 +1,25 @@
+packages:
+  - apps/*
+  - packages/*
+  - modules/*
+
+catalog:
+  '@commitlint/cli': ^21.2.4
+  '@commitlint/config-conventional': ^21.2.4
+  '@eslint/js': ^10.0.1
+  '@types/node': ^24.0.0
+  globals: ^17.0.0
+  eslint: ^10.14.0
+  lint-staged: ^17.6.0
+  prettier: ^3.9.10
+  simple-git-hooks: ^2.14.0
+  tsx: ^4.23.15
+  turbo: ^2.11.10
+  typescript: ~6.0.3
+  typescript-eslint: ^8.72.1
+  vitest: ^5.1.0
+  zod: ^4.6.7
+
+allowBuilds:
+  esbuild: true
+  simple-git-hooks: true

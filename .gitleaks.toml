@@ -1,0 +1,7 @@
+# Default gitleaks rules plus allowances for the repo's own docs and spike records.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Spike evidence and lockfile contain hashes, not secrets"
+paths = ['''pnpm-lock\.yaml''']

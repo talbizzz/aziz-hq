@@ -1,0 +1,8 @@
+node_modules
+dist
+.turbo
+spikes
+pnpm-lock.yaml
+packages/core/src/db/types.ts
+supabase/migrations
+Project-Raw.md
