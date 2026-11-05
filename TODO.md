@@ -29,11 +29,32 @@
 
 ## Milestone 2: Engine
 
-- [ ] (stub — to be detailed)
+- [ ] T2.1 — Dependency validation, status state machine, event data hook
+- [ ] T2.2 — create_task_graph and create_run
+- [ ] T2.3 — Claim, heartbeat, complete, fail
+- [ ] T2.4 — Reaper, gates, run settling, tick, worker heartbeat
+- [ ] T2.5 — Core contracts and engine actions
+- [ ] T2.6 — Runner interface and FakeRunner
+- [ ] T2.7 — Worker: executor, loop, heartbeat, shutdown
+- [ ] T2.8 — Integration harness, concurrency and crashed-worker tests
+- [ ] T2.9 — Fake-run scenario and the full scripted run
+- [ ] T2.10 — Worker in local Docker
+- [ ] T2.11 — Dashboard: runs list and live run view
+- [ ] T2.12 — CI: integration tests
 
 ## Milestone 3: Human-Loop
 
-- [ ] (stub — to be detailed)
+- [ ] T3.1 — resolve_gate
+- [ ] T3.2 — Overrides
+- [ ] T3.3 — Notification outbox and watchdog logic
+- [ ] T3.4 — Vault, pg_net, pg_cron plumbing
+- [ ] T3.5 — Telegram core logic (pure modules)
+- [ ] T3.6 — Edge Function entry and local end-to-end
+- [ ] T3.7 — Dashboard: inbox and gate detail
+- [ ] T3.8 — Dashboard: overrides, off-today, settings
+- [ ] T3.9 — Daily digest and delivery policy end to end
+- [ ] T3.10 — CI wiring and docs
+- [ ] T3.11 — Live verification [Aziz] (needs the hosted project from M1 T1.9)
 
 ## Milestone 4: Real-Agents
 
