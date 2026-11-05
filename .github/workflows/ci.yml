@@ -68,6 +68,8 @@ jobs:
         run: supabase db reset
       - name: pgTAP
         run: supabase test db
+      - name: Integration tests (scheduler, worker processes, scripted fake run)
+        run: pnpm test:integration
       - name: Drift check (schemas vs migrations)
         run: bash scripts/check-drift.sh
       - name: Generated types are up to date
