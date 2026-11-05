@@ -120,6 +120,13 @@ Everything below is fixed by Project-Raw.md and is **not re-decided** here. See 
 - **Rejected:** Direct `pg_net` sends from triggers (no retry, no policy). A separate notifier service (extra deploy unit). Storing the bot token in a table or in GitHub secrets.
 - **Unverified:** `pg_cron`/`pg_net`/Vault on the free plan (M3 T3.4, T3.11).
 
+### ADR-15: Usage policy is a pure decision engine, limits are overrides
+
+- **Decision:** The usage policy (5-hour caps by time of day, weekly pacing and ceiling, manual overrides) is a pure TypeScript function `evaluateUsagePolicy` in `packages/core`, evaluated by the worker before every claim and between turns from three inputs read from Supabase: the latest `usage_snapshots` row (filled from the `rate_limit_event` of `claude -p` stream-json, ADR from spike S1), the active `overrides`, and the `usage_policy` settings. A plan limit hit by a task is **not a failure**: `release_for_limit` puts the task back to pending without consuming an attempt and records a `limit` override that expires at the window's `resetsAt`, so claims resume by themselves.
+- **Why:** The policy decides how fast Aziz's subscription quota is spent, so it must be exhaustively testable without a database or a live model; keeping the claim function unchanged leaves the proven M2 scheduler alone; limits and manual overrides share one mechanism (an expiring override), which also makes them visible in the dashboard and Telegram.
+- **Rejected:** Putting the policy into `claim_task` (SQL date maths for time zones and pacing is hard to test and mixes concerns). A separate "paused" state machine for limits (duplicates overrides).
+- **Consequences:** a worker that is offline applies no policy (nothing runs then); the worker must re-evaluate at `resumeAt`; thresholds live in settings, never in code.
+
 ## Architecture Overview
 
 ```
