@@ -10,3 +10,12 @@ Throwaway PR #1 (closed without merging, branch deleted), 2026-11-05. Each state
 | `main` after the CLI pin                                                 | https://github.com/talbizzz/aziz-hq/actions/runs/42025232451 | all four jobs green                                                                                                                                                                                                                                                                                                                          |
 
 Still owner-only: making the four checks **required** in branch protection (see `docs/runbooks/m1-manual-steps.md`).
+
+## Integration tests (T2.12)
+
+Throwaway PR #2 (closed without merging, branch deleted): the worker stopped calling `scheduler_tick`, so lease reaping and gate opening stop.
+
+| State                            | Run                                                          | Result                                                                                                                                         |
+| -------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| worker without the tick          | https://github.com/talbizzz/aziz-hq/actions/runs/42033282984 | `database` red at **Integration tests** (the crashed-worker and fake-run scenarios time out), `typecheck, lint, test` red (the loop unit test) |
+| `main` with the integration step | https://github.com/talbizzz/aziz-hq/actions/runs/42032485646 | all four jobs green                                                                                                                            |
