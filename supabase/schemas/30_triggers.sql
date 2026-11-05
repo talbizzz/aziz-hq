@@ -24,3 +24,11 @@ create trigger events_no_update before update or delete on public.events
   for each row execute function public.events_append_only();
 create trigger events_no_truncate before truncate on public.events
   for each statement execute function public.events_append_only();
+
+-- Milestone 3: notifications for opened gates and finished runs.
+create trigger tasks_enqueue_gate_notification after update of status on public.tasks
+  for each row when (new.type = 'gate' and new.status = 'waiting_human' and old.status is distinct from new.status)
+  execute function public.enqueue_gate_notification();
+create trigger runs_enqueue_notification after update of status on public.runs
+  for each row when (new.status in ('done', 'failed') and old.status is distinct from new.status)
+  execute function public.enqueue_run_notification();

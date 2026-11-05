@@ -13,3 +13,4 @@ create policy owner_update on public.settings for update to authenticated
   using (public.is_owner()) with check (public.is_owner());
 
 create policy owner_select on public.overrides for select to authenticated using (public.is_owner());
+create policy owner_select on public.notifications for select to authenticated using (public.is_owner());

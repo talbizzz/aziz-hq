@@ -138,6 +138,8 @@ Test IDs: `inbox-table`, `gate-row`, `inbox-count`, `gate-title`, `gate-option-<
 
 ### T3.3 — Notification outbox and watchdog logic
 
+> **Plan updated (implementation, 2026-11-05):** `notifications` is deliberately **not** in the Realtime publication (the inbox is gate-based); `mark_notification` takes `p_status` in `sent | skipped | failed | deferred` (`deferred` + `p_defer_until` replaces the contract's bare `p_defer_until`). The settings defaults are the manual migration `20261105142900_settings_defaults.sql` (not `seed.sql`: local `db reset` runs migrations, so one file serves local and hosted). pgTAP also runs the gate-opening trigger flow as `service_role`.
+
 - **Depends on:** T3.2
 - **Area:** database
 - **What:** `notifications` table, enqueue triggers (gate opens, run done/failed), `due_notifications`, `mark_notification`, `check_worker_offline`, settings seed (manual migration + `seed.sql`), realtime publication entry. No HTTP here.

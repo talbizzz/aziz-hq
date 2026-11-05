@@ -12,6 +12,10 @@ grant all on all tables in schema public to service_role;
 grant select on public.overrides, public.active_overrides to authenticated;
 grant all on public.overrides, public.active_overrides to service_role;
 
+-- Milestone 3: the outbox is read by the owner (RLS); everything else goes through service_role and triggers.
+grant select on public.notifications to authenticated;
+grant all on public.notifications to service_role;
+
 -- Default ACLs: new tables and functions carry no implicit privileges for API roles or PUBLIC, so every grant is
 -- explicit. Mirrored by supabase/migrations/20261105110810_lock_down_table_privileges.sql (the diff tool tracks default ACLs).
 alter default privileges in schema public revoke all on tables from anon, authenticated;
