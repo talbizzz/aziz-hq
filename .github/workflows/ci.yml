@@ -13,8 +13,7 @@ permissions:
   contents: read
 
 env:
-  # Keep in sync with .tool-versions (the local CLI version).
-  SUPABASE_CLI_VERSION: 2.109.1
+  # The Supabase CLI version is pinned once, as the `supabase` entry of the pnpm catalog (the -x names below are valid for it).
   # Services the dashboard and tests do not need; saves image pulls.
   SUPABASE_EXCLUDES: analytics,edge-runtime,imgproxy,inbucket,meta,storage,studio,vector
 
@@ -60,10 +59,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
-        with:
-          version: ${{ env.SUPABASE_CLI_VERSION }}
       - run: pnpm install --frozen-lockfile
+      - name: Use the pinned Supabase CLI (devDependency)
+        run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - run: supabase --version
       - run: supabase start -x "$SUPABASE_EXCLUDES"
       - name: Apply migrations
         run: supabase db reset
@@ -84,10 +83,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
-        with:
-          version: ${{ env.SUPABASE_CLI_VERSION }}
       - run: pnpm install --frozen-lockfile
+      - name: Use the pinned Supabase CLI (devDependency)
+        run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+      - run: supabase --version
       - run: supabase start -x "$SUPABASE_EXCLUDES"
       - run: supabase db reset
       - name: Cache Playwright browsers

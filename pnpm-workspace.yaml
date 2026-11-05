@@ -8,6 +8,7 @@ catalog:
   '@commitlint/config-conventional': ^21.2.4
   '@eslint/js': ^10.0.1
   '@supabase/supabase-js': ^2.118.0
+  supabase: 2.109.1
   '@types/node': ^24.0.0
   globals: ^17.0.0
   eslint: ^10.14.0
@@ -43,3 +44,4 @@ allowBuilds:
   esbuild: true
   simple-git-hooks: true
   workerd: true
+  supabase: true

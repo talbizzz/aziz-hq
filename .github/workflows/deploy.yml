@@ -15,9 +15,6 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  SUPABASE_CLI_VERSION: 2.109.1
-
 jobs:
   migrate:
     if: github.event.workflow_run.conclusion == 'success' && vars.DEPLOY_ENABLED == 'true'
@@ -30,9 +27,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
-      - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          version: ${{ env.SUPABASE_CLI_VERSION }}
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Use the pinned Supabase CLI (devDependency)
+        run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Dry run (logs the plan)
         run: bash scripts/db-push.sh
       - name: Apply migrations
