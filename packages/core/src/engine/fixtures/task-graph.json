@@ -1,0 +1,123 @@
+{
+  "valid": [
+    { "name": "single task", "spec": [{ "key": "a", "type": "system", "title": "A" }] },
+    {
+      "name": "diamond listed in reverse order",
+      "spec": [
+        { "key": "d", "type": "system", "title": "D", "depends_on": ["b", "c"] },
+        { "key": "b", "type": "agent", "role": "builder", "title": "B", "depends_on": ["a"] },
+        { "key": "c", "type": "agent", "role": "builder", "title": "C", "depends_on": ["a"] },
+        { "key": "a", "type": "system", "title": "A" }
+      ]
+    },
+    {
+      "name": "gate task with spec",
+      "spec": [
+        {
+          "key": "g",
+          "type": "gate",
+          "title": "G",
+          "priority": 5,
+          "max_attempts": 1,
+          "payload": { "x": 1 },
+          "gate": {
+            "kind": "plan",
+            "title": "Approve",
+            "priority": 2,
+            "context": {},
+            "options": []
+          }
+        }
+      ]
+    },
+    { "name": "empty graph", "spec": [] }
+  ],
+  "invalid": [
+    {
+      "name": "duplicate key",
+      "spec": [
+        { "key": "a", "type": "system", "title": "A" },
+        { "key": "a", "type": "system", "title": "A2" }
+      ],
+      "error": "duplicate task key: a"
+    },
+    {
+      "name": "invalid key",
+      "spec": [{ "key": "Bad Key", "type": "system", "title": "A" }],
+      "error": "invalid task key: Bad Key"
+    },
+    {
+      "name": "missing key",
+      "spec": [{ "type": "system", "title": "A" }],
+      "error": "invalid task key: <null>"
+    },
+    {
+      "name": "unknown dependency",
+      "spec": [{ "key": "a", "type": "system", "title": "A", "depends_on": ["zz"] }],
+      "error": "unknown dependency: a -> zz"
+    },
+    {
+      "name": "two-node cycle",
+      "spec": [
+        { "key": "a", "type": "system", "title": "A", "depends_on": ["b"] },
+        { "key": "b", "type": "system", "title": "B", "depends_on": ["a"] }
+      ],
+      "error": "dependency cycle: a -> b -> a"
+    },
+    {
+      "name": "self cycle",
+      "spec": [{ "key": "a", "type": "system", "title": "A", "depends_on": ["a"] }],
+      "error": "dependency cycle: a -> a"
+    },
+    {
+      "name": "three-node cycle next to a valid node",
+      "spec": [
+        { "key": "x", "type": "system", "title": "X" },
+        { "key": "a", "type": "system", "title": "A", "depends_on": ["c"] },
+        { "key": "b", "type": "system", "title": "B", "depends_on": ["a"] },
+        { "key": "c", "type": "system", "title": "C", "depends_on": ["b"] }
+      ],
+      "error": "dependency cycle: a -> c -> b -> a"
+    },
+    {
+      "name": "agent without role",
+      "spec": [{ "key": "a", "type": "agent", "title": "A" }],
+      "error": "agent task needs a role: a"
+    },
+    {
+      "name": "role on a system task",
+      "spec": [{ "key": "a", "type": "system", "role": "builder", "title": "A" }],
+      "error": "role not allowed on system task: a"
+    },
+    {
+      "name": "gate without spec",
+      "spec": [{ "key": "a", "type": "gate", "title": "A" }],
+      "error": "gate task needs a gate spec: a"
+    },
+    {
+      "name": "gate spec on a non-gate task",
+      "spec": [
+        { "key": "a", "type": "system", "title": "A", "gate": { "kind": "spec", "title": "x" } }
+      ],
+      "error": "gate spec on a non-gate task: a"
+    },
+    {
+      "name": "invalid gate kind",
+      "spec": [
+        { "key": "a", "type": "gate", "title": "A", "gate": { "kind": "nonsense", "title": "x" } }
+      ],
+      "error": "invalid gate kind: nonsense (a)"
+    },
+    {
+      "name": "invalid task type",
+      "spec": [{ "key": "a", "type": "weird", "title": "A" }],
+      "error": "invalid task type: weird (a)"
+    },
+    {
+      "name": "missing title",
+      "spec": [{ "key": "a", "type": "system" }],
+      "error": "task needs a title: a"
+    },
+    { "name": "not an array", "spec": { "not": "an array" }, "error": "tasks must be a json array" }
+  ]
+}

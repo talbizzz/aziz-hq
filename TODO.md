@@ -33,7 +33,7 @@
 - [x] T2.2 — create_task_graph and create_run
 - [x] T2.3 — Claim, heartbeat, complete, fail
 - [x] T2.4 — Reaper, gates, run settling, tick, worker heartbeat
-- [ ] T2.5 — Core contracts and engine actions
+- [x] T2.5 — Core contracts and engine actions
 - [ ] T2.6 — Runner interface and FakeRunner
 - [ ] T2.7 — Worker: executor, loop, heartbeat, shutdown
 - [ ] T2.8 — Integration harness, concurrency and crashed-worker tests

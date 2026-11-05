@@ -363,13 +363,98 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_blocked_tasks: { Args: never; Returns: number }
+      claim_task: {
+        Args: { p_lease_seconds?: number; p_worker_id: string }
+        Returns: {
+          attempts: number
+          claimed_by: string | null
+          created_at: string
+          depends_on: string[]
+          id: string
+          lane: string | null
+          lease_until: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          result: Json | null
+          role: string | null
+          run_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          type: Database["public"]["Enums"]["task_type"]
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      clear_event_context: { Args: never; Returns: undefined }
+      complete_task: {
+        Args: { p_result?: Json; p_task_id: string; p_worker_id: string }
+        Returns: boolean
+      }
+      create_run: {
+        Args: {
+          p_config?: Json
+          p_module_id: string
+          p_tasks?: Json
+          p_title: string
+        }
+        Returns: Json
+      }
+      create_task_graph: {
+        Args: { p_run_id: string; p_tasks: Json }
+        Returns: Json
+      }
       current_actor_id: { Args: never; Returns: string }
       current_actor_type: {
         Args: never
         Returns: Database["public"]["Enums"]["actor_type"]
       }
+      decide_gate: {
+        Args: {
+          p_comment?: string
+          p_decision: Database["public"]["Enums"]["gate_decision"]
+          p_task_id: string
+          p_via?: string
+        }
+        Returns: Json
+      }
+      fail_task: {
+        Args: {
+          p_error?: Json
+          p_retryable?: boolean
+          p_task_id: string
+          p_worker_id: string
+        }
+        Returns: string
+      }
       health: { Args: never; Returns: string }
+      heartbeat_task: {
+        Args: {
+          p_lease_seconds?: number
+          p_task_id: string
+          p_worker_id: string
+        }
+        Returns: boolean
+      }
       is_owner: { Args: never; Returns: boolean }
+      promote_ready_gates: { Args: never; Returns: number }
+      reap_expired_leases: { Args: never; Returns: number }
+      scheduler_tick: { Args: never; Returns: Json }
+      set_event_context: {
+        Args: { p_actor_id: string; p_actor_type: string; p_data?: Json }
+        Returns: undefined
+      }
+      settle_runs: { Args: never; Returns: number }
+      worker_heartbeat: {
+        Args: { p_info?: Json; p_worker_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       actor_type: "system" | "worker" | "agent" | "human"

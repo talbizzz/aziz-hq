@@ -15,6 +15,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@supabase/supabase-js": "catalog:"
   }
 }
