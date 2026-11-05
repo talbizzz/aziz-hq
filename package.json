@@ -12,7 +12,15 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "db:start": "supabase start -x analytics,edge-runtime,imgproxy,inbucket,meta,storage,studio,vector",
+    "db:stop": "supabase stop --no-backup",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff -f",
+    "db:test": "supabase test db",
+    "db:types": "bash scripts/db-types.sh",
+    "db:push": "bash scripts/db-push.sh",
+    "create-owner": "tsx scripts/create-owner.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged && gitleaks git --pre-commit --staged --redact --no-banner",
@@ -25,6 +33,7 @@
     "@commitlint/cli": "catalog:",
     "@commitlint/config-conventional": "catalog:",
     "@eslint/js": "catalog:",
+    "@supabase/supabase-js": "catalog:",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "globals": "catalog:",
