@@ -1,8 +1,22 @@
 export type Command =
-  | { name: 'status' | 'resume' | 'off' | 'on' | 'help' | 'start' | 'unknown' }
+  | {
+      name:
+        | 'status'
+        | 'resume'
+        | 'off'
+        | 'on'
+        | 'help'
+        | 'start'
+        | 'working'
+        | 'stop'
+        | 'sleeping'
+        | 'unknown';
+    }
   | { name: 'pause'; minutes: number }
+  | { name: 'custom'; capPct: number; minutes: number }
   | { name: 'invalid'; reason: string };
 
+const CUSTOM_USAGE = 'Use /custom <cap 0-100> <duration 1m-24h>, e.g. /custom 70 2h.';
 const PAUSE_USAGE = 'Duration must be between 1 minute and 24 hours, e.g. /pause 90m or /pause 2h.';
 
 export function parseCommand(text: string): Command {
@@ -18,7 +32,20 @@ export function parseCommand(text: string): Command {
     case 'on':
     case 'help':
     case 'start':
+    case 'working':
+    case 'stop':
+    case 'sleeping':
       return { name };
+    case 'custom': {
+      const cap = /^(\d{1,3})%?$/.exec(rest[0] ?? '');
+      const duration = /^(\d+)([mh]?)$/i.exec(rest[1] ?? '');
+      if (!cap || !duration) return { name: 'invalid', reason: CUSTOM_USAGE };
+      const capPct = Number(cap[1]);
+      const minutes = Number(duration[1]) * (duration[2]!.toLowerCase() === 'h' ? 60 : 1);
+      return capPct <= 100 && minutes >= 1 && minutes <= 1440
+        ? { name: 'custom', capPct, minutes }
+        : { name: 'invalid', reason: CUSTOM_USAGE };
+    }
     case 'pause': {
       const arg = rest[0];
       if (arg === undefined) return { name: 'pause', minutes: 60 };

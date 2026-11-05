@@ -201,6 +201,8 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 
 ### T4.12 — Dashboard and Telegram for the new overrides **[local]**
 
+> **Plan updated (implementation, 2026-11-05):** done. Telegram: `/working`, `/sleeping`, `/stop`, `/custom <cap> <duration>` (`HandlerStore.setMode` -> `set_mode_override`), `/resume` ends `pause` and `stop`. Dashboard: a **Mode** menu in the header (I'm working / I'm sleeping / Stop, 5 h each, and a custom cap + minutes), a _Clear mode_ button, the chip text from `lib/overrides.ts` (limit, pause/stop, the latest mode, off today), a **usage policy** section on the settings page (`parseUsagePolicyForm`, saved to the `usage_policy` setting, margin must stay below the ceiling) and a live **usage panel** on `/` (two bars, the weekly pace marker, and the policy decision in plain language computed in the browser with the same `evaluateUsagePolicy` the worker uses). 4 new e2e specs (`usage.spec.ts`), 20 in total.
+
 - **Depends on:** T4.2
 - **What:** header menu items "I'm working (5 h)", "Stop (5 h)", "I'm sleeping (5 h)", custom cap+duration; Telegram commands `/working`, `/stop`, `/sleeping`, `/custom 70 2h`; policy settings (sleeping hours, caps, weekly margin and ceiling) on the settings page; a usage panel (five-hour and weekly bars with `resets_at`, the policy decision and its reason).
 - **Tests (write first):** unit tests for the command parser and settings schema; Playwright for the header menu, the settings form and the panel reading a seeded snapshot (live update on a new snapshot).

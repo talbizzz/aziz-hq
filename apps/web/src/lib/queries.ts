@@ -1,3 +1,4 @@
+import type { ActiveOverride } from './overrides';
 import { supabase } from './supabase';
 
 const unwrap = <T>({ data, error }: { data: T | null; error: { message: string } | null }): T => {
@@ -86,13 +87,27 @@ export const fetchOpenGateCount = async (): Promise<number> => {
 
 // ----- overrides and settings (milestone 3) -----
 
-export const fetchActiveOverrides = async () =>
-  unwrap(await supabase.from('active_overrides').select('kind, expires_at, created_by'));
+// view columns are typed nullable; an active override always has a kind and an expiry
+export const fetchActiveOverrides = async (): Promise<ActiveOverride[]> => {
+  const rows = unwrap(
+    await supabase
+      .from('active_overrides')
+      .select('kind, expires_at, created_by, cap_pct, created_at'),
+  );
+  return rows.flatMap((r) => (r.kind ? [{ ...r, kind: r.kind }] : []));
+};
 
 export const fetchSettings = async () =>
   unwrap(
     await supabase
       .from('settings')
       .select('key, value')
-      .in('key', ['timezone', 'quiet_hours', 'digest_time']),
+      .in('key', ['timezone', 'quiet_hours', 'digest_time', 'usage_policy']),
   );
+
+export const fetchLatestSnapshot = async () => {
+  const rows = unwrap(
+    await supabase.from('usage_snapshots').select('*').order('at', { ascending: false }).limit(1),
+  );
+  return rows[0] ?? null;
+};

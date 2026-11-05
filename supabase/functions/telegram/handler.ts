@@ -9,7 +9,13 @@ export interface HandlerStore {
     via: 'telegram',
   ): Promise<{ first: boolean; decision: string }>;
   setOverride(kind: 'pause' | 'off_today', minutes: number | null, via: 'telegram'): Promise<void>;
-  clearOverride(kind: 'pause' | 'off_today'): Promise<number>;
+  setMode(
+    kind: 'working' | 'stop' | 'sleeping' | 'custom',
+    minutes: number | null,
+    capPct: number | null,
+    via: 'telegram',
+  ): Promise<void>;
+  clearOverride(kind: 'pause' | 'off_today' | 'stop'): Promise<number>;
   status(): Promise<{
     workerOnline: boolean;
     workerLastSeenMinutes: number | null;
@@ -32,7 +38,11 @@ const HELP = [
   'Commands:',
   '/status: worker, runs, open gates, overrides',
   '/pause [90m|2h]: stop starting new tasks (default 1 hour, max 24 hours)',
-  '/resume: end a pause',
+  '/working: I am working, use at most the work cap (5 hours)',
+  '/sleeping: I am sleeping, the factory may use up to the sleeping cap (5 hours)',
+  '/stop: do not use my tokens for 5 hours',
+  '/custom 70 2h: use at most 70% for 2 hours',
+  '/resume: end a pause or stop',
   '/off: "I\'m off today", only critical alerts until midnight',
   '/on: end "off today"',
 ].join('\n');
@@ -144,11 +154,28 @@ export function createHandler(deps: HandlerDeps) {
           await store.setOverride('pause', command.minutes, 'telegram');
           await reply(`⏸ Paused for ${command.minutes} min. /resume to continue.`);
           break;
-        case 'resume':
-          await reply(
-            (await store.clearOverride('pause')) > 0 ? '▶️ Resumed.' : 'Nothing was paused.',
-          );
+        case 'working':
+          await store.setMode('working', null, null, 'telegram');
+          await reply('💼 Working mode for 5 hours: the factory stays within the work cap.');
           break;
+        case 'sleeping':
+          await store.setMode('sleeping', null, null, 'telegram');
+          await reply('😴 Sleeping mode for 5 hours: the factory may use up to the sleeping cap.');
+          break;
+        case 'stop':
+          await store.setMode('stop', null, null, 'telegram');
+          await reply('⛔ Stopped for 5 hours: no new tasks will start. /resume to undo.');
+          break;
+        case 'custom':
+          await store.setMode('custom', command.minutes, command.capPct, 'telegram');
+          await reply(`🎚 Custom mode: at most ${command.capPct}% for ${command.minutes} min.`);
+          break;
+        case 'resume': {
+          const cleared =
+            (await store.clearOverride('pause')) + (await store.clearOverride('stop'));
+          await reply(cleared > 0 ? '▶️ Resumed.' : 'Nothing was paused.');
+          break;
+        }
         case 'off':
           await store.setOverride('off_today', null, 'telegram');
           await reply('🌙 Off for today: only critical alerts until midnight. /on to undo.');

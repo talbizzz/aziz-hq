@@ -73,7 +73,7 @@
 - [ ] T4.9 — First real agent run [live: needs Aziz's go-ahead]
 - [ ] T4.10 — Per-task Docker sandbox (A-prime) [live]
 - [ ] T4.11 — Nightly backup and tested restore [live: needs R2]
-- [ ] T4.12 — Dashboard and Telegram for the new overrides [local]
+- [x] T4.12 — Dashboard and Telegram for the new overrides [local]
 
 ## Milestone 5: Golden-Path
 

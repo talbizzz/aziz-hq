@@ -38,6 +38,7 @@ function memStore() {
       return { first: true, decision };
     }),
     setOverride: vi.fn(async () => undefined),
+    setMode: vi.fn(async () => undefined),
     clearOverride: vi.fn(async () => 1),
     status: vi.fn(async () => ({
       workerOnline: true,
@@ -267,5 +268,53 @@ describe('commands (owner only)', () => {
     const res = await post(hook(store).handle, msg('/pause 10'), SECRET);
     expect(res.status).toBe(200);
     expect(reply()).toMatch(/failed/i);
+  });
+});
+
+describe('usage mode commands (owner only)', () => {
+  const reply = () => calls.find((c) => c.method === 'sendMessage')!.body.text as string;
+
+  it.each([
+    ['/working', 'working', null, null, /working/i],
+    ['/stop', 'stop', null, null, /stopp?ed/i],
+    ['/sleeping', 'sleeping', null, null, /sleeping/i],
+  ] as const)('%s sets the %s mode through the store', async (text, kind, minutes, cap, answer) => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg(text), SECRET);
+    expect(store.setMode).toHaveBeenCalledWith(kind, minutes, cap, 'telegram');
+    expect(reply()).toMatch(answer);
+  });
+
+  it('/custom passes the cap and the duration', async () => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg('/custom 70 2h'), SECRET);
+    expect(store.setMode).toHaveBeenCalledWith('custom', 120, 70, 'telegram');
+    expect(reply()).toMatch(/70%/);
+  });
+
+  it('/custom with bad arguments explains the usage and calls nothing', async () => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg('/custom 200 2h'), SECRET);
+    expect(store.setMode).not.toHaveBeenCalled();
+    expect(reply()).toContain('/custom');
+  });
+
+  it('/resume also ends a stop mode', async () => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg('/resume'), SECRET);
+    expect(store.clearOverride).toHaveBeenCalledWith('pause');
+    expect(store.clearOverride).toHaveBeenCalledWith('stop');
+  });
+
+  it('modes are ignored from a foreign chat', async () => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg('/stop', 999, 999), SECRET);
+    expect(store.setMode).not.toHaveBeenCalled();
+  });
+
+  it('/help lists the new commands', async () => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg('/help'), SECRET);
+    for (const c of ['/working', '/stop', '/sleeping', '/custom']) expect(reply()).toContain(c);
   });
 });

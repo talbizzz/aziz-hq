@@ -37,6 +37,18 @@ export function createHandlerStore(db: Db): HandlerStore {
       );
     },
 
+    async setMode(kind, minutes, capPct, via) {
+      check(
+        await db.rpc('set_mode_override', {
+          p_kind: kind,
+          p_minutes: minutes,
+          p_cap_pct: capPct,
+          p_via: via,
+        }),
+        'set_mode_override',
+      );
+    },
+
     async clearOverride(kind) {
       return check(await db.rpc('clear_override', { p_kind: kind }), 'clear_override') as number;
     },
