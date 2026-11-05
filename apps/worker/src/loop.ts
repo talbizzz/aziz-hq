@@ -1,6 +1,7 @@
 import type { RunnerConfig, RunnerRegistry } from '@aziz-hq/agents-sdk';
+import type { PolicyDecision } from '@aziz-hq/core';
 import type { WorkerConfig } from './config.js';
-import type { EventSink, Logger, WorkerEngine } from './engine.js';
+import type { EventSink, Logger, RunRecorder, WorkerEngine } from './engine.js';
 import { executeTask } from './executor.js';
 
 export interface LoopDeps {
@@ -8,6 +9,9 @@ export interface LoopDeps {
   runners: RunnerRegistry;
   runnerConfig: RunnerConfig;
   events: EventSink;
+  recorder?: RunRecorder;
+  /** The usage policy (ADR-15); evaluated before every claim. Without it nothing is held back. */
+  policy?: () => Promise<PolicyDecision>;
   config: WorkerConfig;
   log: Logger;
 }
@@ -31,7 +35,7 @@ const sleep = (ms: number, signal?: AbortSignal) =>
  * for running tasks up to the grace period, then releases them so another worker can pick them up immediately.
  */
 export async function runWorker(deps: LoopDeps, signal: AbortSignal): Promise<void> {
-  const { engine, runners, runnerConfig, events, config, log } = deps;
+  const { engine, runners, runnerConfig, events, recorder, policy, config, log } = deps;
   const active = new Set<Promise<unknown>>();
   const taskShutdown = new AbortController();
 
@@ -46,11 +50,43 @@ export async function runWorker(deps: LoopDeps, signal: AbortSignal): Promise<vo
   const heartbeatTimer = setInterval(() => void heartbeat(), config.heartbeatIntervalMs);
 
   let errorDelay = 0;
+  let lastPolicyKey = '';
   while (!signal.aborted) {
     let claimed = false;
+    let denyWaitMs: number | null = null;
     try {
       await engine.schedulerTick();
-      while (active.size < config.concurrency && !signal.aborted) {
+
+      // The usage policy gates claiming only: running tasks and the scheduler tick carry on (ADR-15).
+      let allowed = true;
+      if (policy) {
+        const decision = await policy();
+        allowed = decision.allow;
+        const key = decision.allow
+          ? 'allow'
+          : `${decision.reason}|${decision.resumeAt?.toISOString() ?? ''}`;
+        if (key !== lastPolicyKey) {
+          lastPolicyKey = key;
+          if (decision.allow)
+            log.info('usage policy allows claiming', {
+              capPct: decision.capPct,
+              reason: decision.reason,
+            });
+          else
+            log.info('usage policy denies claiming', {
+              reason: decision.reason,
+              resumeAt: decision.resumeAt?.toISOString() ?? null,
+            });
+        }
+        if (!decision.allow) {
+          const untilResume = decision.resumeAt
+            ? decision.resumeAt.getTime() - Date.now()
+            : config.pollIntervalMs;
+          denyWaitMs = Math.min(config.pollIntervalMs, Math.max(250, untilResume));
+        }
+      }
+
+      while (allowed && active.size < config.concurrency && !signal.aborted) {
         const task = await engine.claimTask(config.workerId, config.leaseSeconds);
         if (!task) break;
         claimed = true;
@@ -70,7 +106,7 @@ export async function runWorker(deps: LoopDeps, signal: AbortSignal): Promise<vo
         }
 
         const running: Promise<unknown> = executeTask(
-          { engine, runner, events, config, log },
+          { engine, runner, events, recorder, config, log },
           task,
           taskShutdown.signal,
         )
@@ -87,7 +123,9 @@ export async function runWorker(deps: LoopDeps, signal: AbortSignal): Promise<vo
 
     if (signal.aborted) break;
     const wait =
-      errorDelay || (claimed && active.size < config.concurrency ? 0 : config.pollIntervalMs);
+      errorDelay ||
+      denyWaitMs ||
+      (claimed && active.size < config.concurrency ? 0 : config.pollIntervalMs);
     if (wait > 0) await sleep(wait, signal);
   }
 

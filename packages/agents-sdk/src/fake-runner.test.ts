@@ -104,3 +104,74 @@ describe('FakeRunner', () => {
     );
   });
 });
+
+describe('FakeRunner limit outcomes', () => {
+  it('returns status limit with a reset time relative to now', async () => {
+    const before = Date.now();
+    const result = await new FakeRunner().run(
+      input({ fake: { outcomes: [{ status: 'limit', resetsInMs: 90_000 }, { status: 'done' }] } }),
+    );
+    expect(result.status).toBe('limit');
+    expect(result.resetsAt!.getTime()).toBeGreaterThanOrEqual(before + 90_000);
+    expect(result.resetsAt!.getTime()).toBeLessThan(Date.now() + 90_000 + 1000);
+    expect(runnerResultSchema.safeParse(result).success).toBe(true);
+  });
+  it('a limit outcome without a reset time has no resetsAt', async () => {
+    const result = await new FakeRunner().run(input({ fake: { outcomes: [{ status: 'limit' }] } }));
+    expect(result).toMatchObject({ status: 'limit' });
+    expect(result.resetsAt).toBeUndefined();
+  });
+});
+
+describe('FakeRunner absolute limit windows', () => {
+  it('a limit outcome with an absolute resetsAt applies only until that time, then the next outcome is used', async () => {
+    const past = new Date(Date.now() - 1000).toISOString();
+    const future = new Date(Date.now() + 60_000).toISOString();
+    const runner = new FakeRunner();
+    const stillLimited = await runner.run(
+      input({
+        fake: {
+          outcomes: [
+            { status: 'limit', resetsAt: future },
+            { status: 'done', summary: 'after' },
+          ],
+        },
+      }),
+    );
+    expect(stillLimited.status).toBe('limit');
+    expect(stillLimited.resetsAt).toEqual(new Date(future));
+    const over = await runner.run(
+      input({
+        fake: {
+          outcomes: [
+            { status: 'limit', resetsAt: past },
+            { status: 'done', summary: 'after' },
+          ],
+        },
+      }),
+    );
+    expect(over).toMatchObject({ status: 'done', summary: 'after' });
+  });
+});
+
+describe('FakeRunner limitUntil', () => {
+  it('stops applying at limitUntil even though the reported resetsAt is later', async () => {
+    const outcomes = (limitUntil: string) => [
+      { status: 'limit', resetsAt: new Date(Date.now() + 60_000).toISOString(), limitUntil },
+      { status: 'done', summary: 'after' },
+    ];
+    const runner = new FakeRunner();
+    expect(
+      (
+        await runner.run(
+          input({ fake: { outcomes: outcomes(new Date(Date.now() + 60_000).toISOString()) } }),
+        )
+      ).status,
+    ).toBe('limit');
+    expect(
+      await runner.run(
+        input({ fake: { outcomes: outcomes(new Date(Date.now() - 1000).toISOString()) } }),
+      ),
+    ).toMatchObject({ status: 'done', summary: 'after' });
+  });
+});

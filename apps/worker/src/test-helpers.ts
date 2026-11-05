@@ -50,6 +50,9 @@ export function fakeEngine(
     failTask: vi.fn(async () => 'failed' as const),
     schedulerTick: vi.fn(async () => ({ reaped: 0, gatesOpened: 0, cancelled: 0, runsSettled: 0 })),
     workerHeartbeat: vi.fn(async () => undefined),
+    releaseForLimit: vi.fn(async () => true),
+    recordUsageSnapshot: vi.fn(async () => 'snap-1'),
+    createTaskGraph: vi.fn(async () => ({})),
     ...over,
   };
   return engine as unknown as FakeEngine;

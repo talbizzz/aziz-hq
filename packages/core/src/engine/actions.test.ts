@@ -132,3 +132,59 @@ describe('createEngine', () => {
     expect(err).toMatchObject({ rpc: 'decide_gate', code: '22023', message: 'gate is not open' });
   });
 });
+
+describe('createEngine: usage policy and escalation (milestone 4)', () => {
+  it('releaseForLimit maps arguments, including a missing reset time', async () => {
+    const a = fakeClient(ok(true));
+    expect(
+      await createEngine(a.client).releaseForLimit('t1', 'w1', new Date('2026-11-05T15:00:00Z')),
+    ).toBe(true);
+    expect(a.rpc).toHaveBeenCalledWith('release_for_limit', {
+      p_task_id: 't1',
+      p_worker_id: 'w1',
+      p_resets_at: '2026-11-05T15:00:00.000Z',
+    });
+    const b = fakeClient(ok(false));
+    expect(await createEngine(b.client).releaseForLimit('t1', 'w1', null)).toBe(false);
+    expect(b.rpc).toHaveBeenCalledWith('release_for_limit', {
+      p_task_id: 't1',
+      p_worker_id: 'w1',
+      p_resets_at: null,
+    });
+  });
+
+  it('recordUsageSnapshot maps the two windows', async () => {
+    const { client, rpc } = fakeClient(ok('snap-1'));
+    const id = await createEngine(client).recordUsageSnapshot({
+      source: 'rate_limit_event',
+      fiveHour: { pct: 15, resetsAt: new Date('2026-11-05T15:00:00Z') },
+      sevenDay: { pct: 9, resetsAt: new Date('2026-11-08T04:00:00Z') },
+      runId: 'r1',
+      taskId: 't1',
+    });
+    expect(id).toBe('snap-1');
+    expect(rpc).toHaveBeenCalledWith('record_usage_snapshot', {
+      p_source: 'rate_limit_event',
+      p_five_pct: 15,
+      p_five_resets: '2026-11-05T15:00:00.000Z',
+      p_seven_pct: 9,
+      p_seven_resets: '2026-11-08T04:00:00.000Z',
+      p_run_id: 'r1',
+      p_task_id: 't1',
+    });
+  });
+
+  it('createTaskGraph validates on the client first and returns the ids by key', async () => {
+    const { client, rpc } = fakeClient(ok({ a: 'id-a' }));
+    expect(
+      await createEngine(client).createTaskGraph('r1', [{ key: 'a', type: 'system', title: 'A' }]),
+    ).toEqual({ a: 'id-a' });
+    expect(rpc).toHaveBeenCalledWith('create_task_graph', {
+      p_run_id: 'r1',
+      p_tasks: [{ key: 'a', type: 'system', title: 'A' }],
+    });
+    await expect(
+      createEngine(client).createTaskGraph('r1', [{ key: 'a', type: 'agent', title: 'A' }]),
+    ).rejects.toThrowError('agent task needs a role: a');
+  });
+});

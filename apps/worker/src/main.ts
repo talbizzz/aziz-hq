@@ -1,10 +1,17 @@
 import { readFileSync } from 'node:fs';
-import { RunnerRegistry, FakeRunner, runnerConfigSchema } from '@aziz-hq/agents-sdk';
+import {
+  ClaudeCodeSubscriptionRunner,
+  FakeRunner,
+  RunnerRegistry,
+  runnerConfigSchema,
+} from '@aziz-hq/agents-sdk';
 import { createEngine, type Database } from '@aziz-hq/core';
 import { createClient } from '@supabase/supabase-js';
 import { loadConfig } from './config.js';
 import type { EventSink, Logger } from './engine.js';
 import { runWorker } from './loop.js';
+import { createPolicyProvider } from './policy-source.js';
+import { createPolicyDb, createRunRecorder } from './supabase-adapters.js';
 
 const log: Logger = {
   info: (msg, data) => console.log(JSON.stringify({ level: 'info', msg, ...data })),
@@ -43,12 +50,23 @@ const shutdown = new AbortController();
 for (const sig of ['SIGTERM', 'SIGINT'] as const) process.on(sig, () => shutdown.abort());
 
 log.info('worker starting', { workerId: config.workerId, concurrency: config.concurrency });
+const engine = createEngine(client);
 await runWorker(
   {
-    engine: createEngine(client),
-    runners: new RunnerRegistry().register('fake', new FakeRunner()),
+    engine,
+    runners: new RunnerRegistry().register('fake', new FakeRunner()).register(
+      'claude-code-subscription',
+      new ClaudeCodeSubscriptionRunner({
+        claudeBin: process.env.CLAUDE_BIN,
+        configDir: process.env.CLAUDE_CONFIG_DIR,
+      }),
+    ),
     runnerConfig,
     events,
+    recorder: createRunRecorder({ db: client, engine }),
+    // the usage policy (ADR-15) gates claiming; set USAGE_POLICY=off only for experiments
+    policy:
+      process.env.USAGE_POLICY === 'off' ? undefined : createPolicyProvider(createPolicyDb(client)),
     config,
     log,
   },

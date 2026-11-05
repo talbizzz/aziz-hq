@@ -3,14 +3,22 @@ import { join } from 'node:path';
 import type { Runner } from '@aziz-hq/agents-sdk';
 import type { Task } from '@aziz-hq/core';
 import type { WorkerConfig } from './config.js';
-import type { EventSink, Logger, WorkerEngine } from './engine.js';
+import type { EventSink, Logger, RunRecorder, WorkerEngine } from './engine.js';
 
-export type ExecuteOutcome = 'done' | 'failed' | 'lease_lost';
+export type ExecuteOutcome = 'done' | 'failed' | 'limit' | 'lease_lost';
+
+// Retrying cannot fix these (a logged-out CLI, a bad task, a guard violation): fail for good and escalate.
+const NON_RETRYABLE = new Set(['auth', 'config', 'protected_tests', 'out_of_scope', 'guard_error']);
 
 export interface ExecutorDeps {
-  engine: Pick<WorkerEngine, 'heartbeatTask' | 'completeTask' | 'failTask'>;
+  engine: Pick<
+    WorkerEngine,
+    'heartbeatTask' | 'completeTask' | 'failTask' | 'releaseForLimit' | 'recordUsageSnapshot'
+  >;
   runner: Runner;
   events: EventSink;
+  /** Usage rows, transcripts and escalation gates; optional (the FakeRunner needs none). */
+  recorder?: RunRecorder;
   config: WorkerConfig;
   log: Logger;
 }
@@ -27,7 +35,7 @@ export async function executeTask(
   task: Task,
   shutdown: AbortSignal,
 ): Promise<ExecuteOutcome> {
-  const { engine, runner, events, config, log } = deps;
+  const { engine, runner, events, recorder, config, log } = deps;
   const control = new AbortController();
   let leaseLost = false;
 
@@ -58,8 +66,30 @@ export async function executeTask(
     error: Record<string, unknown>,
     retryable: boolean,
   ): Promise<ExecuteOutcome> => {
+    // A final failure escalates to a gate for the owner. Escalate before failing so the gate exists when the run settles.
+    const final = !retryable || task.attempts >= task.max_attempts;
+    if (final && recorder && error.kind !== 'shutdown') {
+      try {
+        await recorder.escalate(task, {
+          errorKind: String(error.kind),
+          summary: String(error.message ?? ''),
+          attempt: task.attempts,
+          maxAttempts: task.max_attempts,
+        });
+      } catch (e) {
+        log.warn('could not escalate', { task: task.id, error: String(e) });
+      }
+    }
     const outcome = await engine.failTask(task.id, config.workerId, error, retryable);
     return outcome === 'ignored' ? 'lease_lost' : 'failed';
+  };
+
+  const guarded = async (what: string, run: () => Promise<unknown>) => {
+    try {
+      await run();
+    } catch (e) {
+      log.warn(`could not record ${what}`, { task: task.id, error: String(e) });
+    }
   };
 
   try {
@@ -89,6 +119,24 @@ export async function executeTask(
       log.warn('could not record runner events', { task: task.id, error: String(e) });
     }
 
+    // usage and transcripts are recorded for every outcome, including limits and failures; none of it can fail the task
+    if (result.usage && recorder)
+      await guarded('usage', () => recorder.usage(task, runner.name, result.usage!));
+    if (result.rateLimit) {
+      const { fiveHour, sevenDay } = result.rateLimit;
+      await guarded('usage snapshot', () =>
+        engine.recordUsageSnapshot({
+          source: 'rate_limit_event',
+          fiveHour: { pct: fiveHour.pct, resetsAt: fiveHour.resetsAt },
+          sevenDay: { pct: sevenDay.pct, resetsAt: sevenDay.resetsAt },
+          runId: task.run_id,
+          taskId: task.id,
+        }),
+      );
+    }
+    if (result.transcript && recorder)
+      await guarded('transcript', () => recorder.transcript(task, result.transcript!));
+
     if (result.status === 'done') {
       const ok = await engine.completeTask(task.id, config.workerId, {
         summary: result.summary,
@@ -96,10 +144,20 @@ export async function executeTask(
       });
       return ok ? 'done' : 'lease_lost';
     }
+    if (result.status === 'limit') {
+      // a plan limit is a pause, not a failure: the task goes back to pending without consuming the attempt
+      const released = await engine.releaseForLimit(
+        task.id,
+        config.workerId,
+        result.resetsAt ?? null,
+      );
+      return released ? 'limit' : 'lease_lost';
+    }
     if (result.status === 'needs_human') {
       return fail({ kind: 'needs_human', message: result.summary }, false);
     }
-    return fail({ kind: 'runner_failed', message: result.summary }, true);
+    const kind = result.errorKind ?? 'runner_failed';
+    return fail({ kind, message: result.summary }, !NON_RETRYABLE.has(kind));
   } catch (err) {
     if (leaseLost) return 'lease_lost';
     const reason = control.signal.aborted ? (control.signal.reason as unknown) : undefined;

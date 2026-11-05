@@ -106,6 +106,35 @@ export function createEngine(client: EngineClient) {
       await call<null>('worker_heartbeat', { p_worker_id: workerId, p_info: info });
     },
 
+    releaseForLimit: (taskId: string, workerId: string, resetsAt: Date | null) =>
+      call<boolean>('release_for_limit', {
+        p_task_id: taskId,
+        p_worker_id: workerId,
+        p_resets_at: resetsAt ? resetsAt.toISOString() : null,
+      }),
+
+    recordUsageSnapshot: (input: {
+      source: 'rate_limit_event' | 'estimate';
+      fiveHour: { pct: number; resetsAt: Date };
+      sevenDay: { pct: number; resetsAt: Date };
+      runId?: string | null;
+      taskId?: string | null;
+    }) =>
+      call<string>('record_usage_snapshot', {
+        p_source: input.source,
+        p_five_pct: input.fiveHour.pct,
+        p_five_resets: input.fiveHour.resetsAt.toISOString(),
+        p_seven_pct: input.sevenDay.pct,
+        p_seven_resets: input.sevenDay.resetsAt.toISOString(),
+        p_run_id: input.runId ?? null,
+        p_task_id: input.taskId ?? null,
+      }),
+
+    async createTaskGraph(runId: string, tasks: TaskSpec[]) {
+      validateTaskGraph(tasks);
+      return call<Record<string, string>>('create_task_graph', { p_run_id: runId, p_tasks: tasks });
+    },
+
     decideGate: (input: {
       taskId: string;
       decision: GateDecision;
