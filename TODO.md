@@ -38,7 +38,7 @@
 - [x] T2.7 — Worker: executor, loop, heartbeat, shutdown
 - [x] T2.8 — Integration harness, concurrency and crashed-worker tests
 - [x] T2.9 — Fake-run scenario and the full scripted run
-- [ ] T2.10 — Worker in local Docker
+- [x] T2.10 — Worker in local Docker
 - [ ] T2.11 — Dashboard: runs list and live run view
 - [ ] T2.12 — CI: integration tests
 

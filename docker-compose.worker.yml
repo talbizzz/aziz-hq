@@ -1,0 +1,16 @@
+# The worker next to the local Supabase stack (`pnpm db:start`). Usage: see docs/runbooks/worker-local.md
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: always
+    env_file:
+      - .env.worker
+    networks:
+      - supabase
+
+networks:
+  supabase:
+    external: true
+    name: supabase_network_aziz-hq

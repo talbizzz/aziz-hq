@@ -14,13 +14,13 @@
   "devDependencies": {
     "typescript": "catalog:",
     "vitest": "catalog:",
-    "tsx": "catalog:",
     "@types/node": "catalog:"
   },
   "dependencies": {
     "@aziz-hq/agents-sdk": "workspace:*",
     "@aziz-hq/core": "workspace:*",
     "@supabase/supabase-js": "catalog:",
+    "tsx": "catalog:",
     "zod": "catalog:"
   }
 }

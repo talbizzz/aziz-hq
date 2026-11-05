@@ -1,0 +1,13 @@
+**/node_modules
+.git
+.github
+spikes
+docs
+supabase
+**/dist
+**/.turbo
+**/.functions-build
+**/test-results
+.env*
+!.env.example
+*.md
