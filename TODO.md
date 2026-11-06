@@ -12,7 +12,7 @@
 
 ## Milestone 1: Foundation
 
-> Built autonomously 2026-11-05: everything that needs no owner account is done and CI is green on `main`. **Open, owner-only:** the hosted Supabase project, secrets and owner user (T1.9), Access, domain and `DEPLOY_ENABLED` (T1.11), keepalive dispatch (T1.12). Steps: `docs/runbooks/m1-manual-steps.md`.
+> M1 complete 2026-11-06: hosted Supabase (20 migrations), owner, keepalive and the Cloudflare deploy behind Access are live. Workers Free CPU limit for the Access middleware is still to watch (see S3).
 
 - [x] T1.1 — Monorepo scaffold, tooling, CLAUDE.md, gitleaks
 - [x] T1.2 — Module-boundary lint rule with fixture test
@@ -24,7 +24,7 @@
 - [x] T1.8 — Core Zod schemas matching DB enums
 - [x] T1.9 — Hosted platform Supabase project (manual + scripted) (project, 20 migrations incl. API lockdown, secrets, owner user, verify-hosted 15/15; done 2026-11-06)
 - [x] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
-- [ ] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access (wrangler config, deploy job, size gate, smoke script, runbook done; needs Aziz: Access app, domain, secrets)
+- [x] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access (live 2026-11-06: Pages project, domain, Access app, deploy job green, smoke-prod 5/5, owner login with MFA confirmed by Aziz)
 - [x] T1.12 — Keepalive workflow (manual dispatch green against hosted, 2026-11-06)
 
 ## Milestone 2: Engine
