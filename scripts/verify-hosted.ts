@@ -26,16 +26,17 @@ const check = (ok: boolean, label: string) => {
 const health = await fetch(`${url}/rest/v1/rpc/health`, { method: 'POST', headers, body: '{}' });
 check(health.status === 200 && (await health.text()) === '"ok"', "rpc('health') returns ok");
 
+// anon must be refused outright (no table privileges at all), not merely see zero rows: RLS is the second layer, not the only one
 for (const t of tables) {
   const res = await fetch(`${url}/rest/v1/${t}?select=*&limit=1`, { headers });
-  const body = (await res.json().catch(() => null)) as unknown;
-  const denied = res.status >= 400;
-  const empty = res.status === 200 && Array.isArray(body) && body.length === 0;
-  check(denied || empty, `anon cannot read ${t} (status ${res.status})`);
+  check(res.status >= 400, `anon is refused on ${t} (status ${res.status})`);
 }
 
-const owner = await fetch(`${url}/rest/v1/rpc/is_owner`, { method: 'POST', headers, body: '{}' });
-check(owner.status >= 400, `anon cannot call is_owner() (status ${owner.status})`);
+// read-only functions that must not be callable with the publishable key (mutating ones are never probed from here)
+for (const fn of ['is_owner', 'telegram_config', 'vault_secret', 'due_notifications']) {
+  const res = await fetch(`${url}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: '{}' });
+  check(res.status >= 400, `anon cannot call ${fn}() (status ${res.status})`);
+}
 
 const signup = await fetch(`${url}/auth/v1/signup`, {
   method: 'POST',

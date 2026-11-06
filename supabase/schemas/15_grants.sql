@@ -24,3 +24,9 @@ grant all on public.usage_snapshots to service_role;
 -- explicit. Mirrored by supabase/migrations/20261105110810_lock_down_table_privileges.sql (the diff tool tracks default ACLs).
 alter default privileges in schema public revoke all on tables from anon, authenticated;
 alter default privileges for role postgres revoke execute on functions from public;
+
+-- Mirrors supabase/migrations/20261106100000_lockdown_api_privileges.sql (the diff tool tracks default ACLs): anon and
+-- authenticated get nothing by default on future functions, tables and sequences, on hosted and local alike.
+alter default privileges for role postgres in schema public revoke all on functions from public, anon, authenticated;
+alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated;
+alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated;
