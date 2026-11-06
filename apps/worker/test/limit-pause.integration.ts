@@ -18,6 +18,10 @@ describe('the usage policy through a real worker (milestone 4)', () => {
   });
   afterEach(async () => {
     await Promise.all(workers.splice(0).map((w) => w.stop()));
+    // leave no snapshot or override behind: they would make the policy deny the other worker tests
+    const db = serviceClient();
+    await db.from('overrides').delete().not('id', 'is', null);
+    await db.from('usage_snapshots').delete().not('id', 'is', null);
   });
 
   it('a limit result pauses claiming until the window resets, without consuming an attempt, then resumes by itself', async () => {

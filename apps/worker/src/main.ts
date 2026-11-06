@@ -11,7 +11,11 @@ import { loadConfig } from './config.js';
 import type { EventSink, Logger } from './engine.js';
 import { runWorker } from './loop.js';
 import { createPolicyProvider } from './policy-source.js';
-import { createPolicyDb, createRunRecorder } from './supabase-adapters.js';
+import {
+  createPolicyDb,
+  createRunRecorder,
+  createStorageTranscriptSink,
+} from './supabase-adapters.js';
 
 const log: Logger = {
   info: (msg, data) => console.log(JSON.stringify({ level: 'info', msg, ...data })),
@@ -63,7 +67,11 @@ await runWorker(
     ),
     runnerConfig,
     events,
-    recorder: createRunRecorder({ db: client, engine }),
+    recorder: createRunRecorder({
+      db: client,
+      engine,
+      transcripts: createStorageTranscriptSink(client),
+    }),
     // the usage policy (ADR-15) gates claiming; set USAGE_POLICY=off only for experiments
     policy:
       process.env.USAGE_POLICY === 'off' ? undefined : createPolicyProvider(createPolicyDb(client)),

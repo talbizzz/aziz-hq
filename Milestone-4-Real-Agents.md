@@ -179,6 +179,9 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 - **Area:** database
 - **What:** bucket `transcripts` (private) and policies in a manual migration (storage schema objects are not tracked by the diff tool), `StorageTranscriptSink` adapter; enable the `storage` service in the local config for the tests that need it.
 - **Tests (write first):** integration: upload a redacted transcript as the service role, owner at aal2 can read it, anon and a non-owner cannot; path layout; redaction applied before upload.
+
+> **Plan updated (implementation, 2026-11-06):** the owner-read and no-client-write rules are asserted in pgTAP (`transcripts_storage_test.sql`), which can act as the owner at aal2 without a TOTP flow; the integration test (`apps/worker/test/transcripts.integration.ts`) covers the sink against the real local Storage (upload, redaction, privacy for anon, text-only bucket). Layout: `<run_id>/<task_id>/attempt-<n>.txt`, a retry replaces the object. The sink redacts again before uploading.
+
 - **Done when:** integration green; `docs/MANUAL_MIGRATIONS.md` updated.
 
 ### T4.9 — First real agent run **[live: needs Aziz's go-ahead]**

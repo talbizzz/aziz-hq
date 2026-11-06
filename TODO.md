@@ -69,7 +69,7 @@
 - [x] T4.5 — Redaction [local]
 - [x] T4.6 — ClaudeCodeSubscriptionRunner against a recorded CLI [local]
 - [x] T4.7 — Worker integration: policy, limit handling, usage, transcripts [local]
-- [ ] T4.8 — Transcript storage and Storage RLS [local]
+- [x] T4.8 — Transcript storage and Storage RLS [local] (bucket + owner-read policy, StorageTranscriptSink wired into the worker; pgTAP, unit and Storage integration tests green; hosted migration applies on merge)
 - [ ] T4.9 — First real agent run [live: needs Aziz's go-ahead]
 - [ ] T4.10 — Per-task Docker sandbox (A-prime) [live]
 - [ ] T4.11 — Nightly backup and tested restore [live: needs R2]
