@@ -22,10 +22,10 @@
 - [x] T1.6 — Owner model, RLS policies and event triggers with pgTAP tests
 - [x] T1.7 — Drift check, pgTAP and type-generation checks in CI (database job green on main; drift and types red demos in docs/ci-failure-demos.md; branch protection now requires the four checks, 2026-11-06)
 - [x] T1.8 — Core Zod schemas matching DB enums
-- [ ] T1.9 — Hosted platform Supabase project (manual + scripted) (deploy.yml, verify-hosted.ts, runbook done; needs Aziz: Supabase project, secrets, owner user)
+- [x] T1.9 — Hosted platform Supabase project (manual + scripted) (project, 20 migrations incl. API lockdown, secrets, owner user, verify-hosted 15/15; done 2026-11-06)
 - [x] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
 - [ ] T1.11 — Deploy to Cloudflare at hq.aziztalbi.com behind Access (wrangler config, deploy job, size gate, smoke script, runbook done; needs Aziz: Access app, domain, secrets)
-- [ ] T1.12 — Keepalive workflow (keepalive.yml written; needs the hosted project and a manual dispatch)
+- [x] T1.12 — Keepalive workflow (manual dispatch green against hosted, 2026-11-06)
 
 ## Milestone 2: Engine
 
