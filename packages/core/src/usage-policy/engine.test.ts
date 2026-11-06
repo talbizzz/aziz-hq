@@ -115,6 +115,7 @@ describe('the weekly hard ceiling and pacing', () => {
       [override('sleeping', NOON)],
       [override('off_today', NOON)],
       [override('working', NOON)],
+      [override('pacing_bypass_week', NOON)],
     ]) {
       const d = evaluateUsagePolicy(input(NOON, { snapshot, overrides: o }));
       expect(d).toMatchObject({ allow: false, reason: 'weekly_ceiling' });
@@ -124,7 +125,7 @@ describe('the weekly hard ceiling and pacing', () => {
       evaluateUsagePolicy(
         input(NOON, {
           snapshot: snap({ sevenDayPct: 89.9, fiveHourPct: 0 }, NOON),
-          overrides: [override('sleeping', NOON)],
+          overrides: [override('sleeping', NOON), override('pacing_bypass_week', NOON)],
         }),
       ).allow,
     ).toBe(true);
@@ -183,7 +184,7 @@ describe('the weekly hard ceiling and pacing', () => {
     );
   });
 
-  it('explicit overrides bypass pacing (only the hard ceiling always applies); stop still denies', () => {
+  it('modes and "off today" do not bypass pacing; stop still denies', () => {
     const snapshot = snap({ sevenDayPct: 70, fiveHourPct: 0 }); // above the pace, below the ceiling
     expect(evaluateUsagePolicy(input(NOON, { snapshot }))).toMatchObject({
       allow: false,
@@ -195,13 +196,69 @@ describe('the weekly hard ceiling and pacing', () => {
       override('off_today', NOON),
       override('custom', NOON, { capPct: 80 }),
     ]) {
-      expect(evaluateUsagePolicy(input(NOON, { snapshot, overrides: [o] })).allow, o.kind).toBe(
-        true,
-      );
+      expect(evaluateUsagePolicy(input(NOON, { snapshot, overrides: [o] })), o.kind).toMatchObject({
+        allow: false,
+        reason: 'weekly_pacing',
+      });
     }
     expect(
       evaluateUsagePolicy(input(NOON, { snapshot, overrides: [override('stop', NOON)] })),
     ).toMatchObject({ allow: false, reason: 'override_stop' });
+  });
+
+  it('an explicit pacing bypass (day or week) lets work run up to the hard ceiling', () => {
+    const over = snap({ sevenDayPct: 70, fiveHourPct: 0 });
+    for (const kind of ['pacing_bypass_day', 'pacing_bypass_week'] as const) {
+      const bypass = override(kind, NOON);
+      // normal operation, cap from the time of day, pacing no longer blocks
+      expect(
+        evaluateUsagePolicy(input(NOON, { snapshot: over, overrides: [bypass] })),
+        kind,
+      ).toMatchObject({ allow: true, capPct: 50, reason: 'work_hours' });
+      // it combines with a mode: the mode still sets the cap
+      expect(
+        evaluateUsagePolicy(
+          input(NOON, { snapshot: over, overrides: [bypass, override('sleeping', NOON)] }),
+        ),
+      ).toMatchObject({ allow: true, capPct: 100 });
+      // the hard ceiling always wins
+      expect(
+        evaluateUsagePolicy(
+          input(NOON, { snapshot: snap({ sevenDayPct: 90 }), overrides: [bypass] }),
+        ),
+      ).toMatchObject({ allow: false, reason: 'weekly_ceiling' });
+      // stop, pause and a hit plan limit still deny
+      for (const stopper of ['stop', 'pause', 'limit'] as const) {
+        expect(
+          evaluateUsagePolicy(
+            input(NOON, { snapshot: over, overrides: [bypass, override(stopper, NOON)] }),
+          ).allow,
+          `${kind} + ${stopper}`,
+        ).toBe(false);
+      }
+      // the five-hour cap still applies
+      expect(
+        evaluateUsagePolicy(
+          input(NOON, {
+            snapshot: snap({ sevenDayPct: 70, fiveHourPct: 50 }),
+            overrides: [bypass],
+          }),
+        ),
+      ).toMatchObject({ allow: false, reason: 'five_hour_cap' });
+    }
+  });
+
+  it('an expired pacing bypass no longer applies', () => {
+    const over = snap({ sevenDayPct: 70, fiveHourPct: 0 });
+    const expired = override('pacing_bypass_day', NOON, {
+      expiresAt: new Date(NOON.getTime() - 1),
+    });
+    expect(
+      evaluateUsagePolicy(input(NOON, { snapshot: over, overrides: [expired] })),
+    ).toMatchObject({
+      allow: false,
+      reason: 'weekly_pacing',
+    });
   });
 
   it('thresholds come from settings', () => {
@@ -342,6 +399,8 @@ describe('monotonicity (property)', () => {
         'custom',
         'off_today',
         'limit',
+        'pacing_bypass_day',
+        'pacing_bypass_week',
       ];
       const overrides = kinds
         .filter(() => rand() < 0.3)

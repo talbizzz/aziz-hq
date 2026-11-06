@@ -252,6 +252,28 @@ describe('commands (owner only)', () => {
     await post(h, msg('/on', OWNER, OWNER, 12), SECRET);
     expect(store.clearOverride).toHaveBeenCalledWith('off_today');
   });
+  it('/nopacing day|week sets the explicit bypass, /pacing clears both', async () => {
+    const { store } = memStore();
+    const h = hook(store).handle;
+    await post(h, msg('/nopacing day', OWNER, OWNER, 13), SECRET);
+    expect(store.setOverride).toHaveBeenCalledWith('pacing_bypass_day', null, 'telegram');
+    expect(reply()).toMatch(/today/i);
+    calls = [];
+    await post(h, msg('/nopacing week', OWNER, OWNER, 14), SECRET);
+    expect(store.setOverride).toHaveBeenCalledWith('pacing_bypass_week', null, 'telegram');
+    expect(reply()).toMatch(/90%/);
+    calls = [];
+    await post(h, msg('/pacing', OWNER, OWNER, 15), SECRET);
+    expect(store.clearOverride).toHaveBeenCalledWith('pacing_bypass_day');
+    expect(store.clearOverride).toHaveBeenCalledWith('pacing_bypass_week');
+    expect(reply()).toMatch(/pacing/i);
+  });
+  it('/nopacing without a scope changes nothing', async () => {
+    const { store } = memStore();
+    await post(hook(store).handle, msg('/nopacing'), SECRET);
+    expect(store.setOverride).not.toHaveBeenCalled();
+    expect(reply()).toContain('/nopacing day');
+  });
   it('/help, /start and plain text answer with the command list', async () => {
     const { store } = memStore();
     const h = hook(store).handle;

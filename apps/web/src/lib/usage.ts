@@ -17,7 +17,8 @@ const ALLOW_SOURCE: Record<string, string> = {
 
 const DENY_TEXT: Record<string, (cap?: number) => string> = {
   five_hour_cap: (cap) => `the five-hour cap (${cap}%) is reached`,
-  weekly_pacing: () => 'usage is ahead of the weekly pace',
+  weekly_pacing: () =>
+    'usage is ahead of the weekly pace (Mode > Ignore weekly pacing runs anyway, up to the weekly ceiling)',
   weekly_ceiling: () => 'the weekly ceiling is reached',
   override_stop: () => 'stop mode is active',
   limit: () => 'the plan limit was hit',

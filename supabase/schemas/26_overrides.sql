@@ -1,4 +1,4 @@
--- Milestone 3, contract C2: override functions. Callable by the owner (aal2, dashboard) and by service_role (Telegram).
+-- Milestone 3, contract C2: override functions (M4 adds the two weekly-pacing bypasses). Callable by the owner (aal2, dashboard) and by service_role (Telegram).
 
 -- The next local midnight after p_now in time zone p_tz (DST-safe: wall-clock arithmetic, then back to an instant).
 create function public.next_local_midnight(p_now timestamptz, p_tz text) returns timestamptz
@@ -20,7 +20,7 @@ begin
   if not (auth.role() = 'service_role' or public.is_owner()) then
     raise exception 'not authorised' using errcode = 'insufficient_privilege';
   end if;
-  if p_kind not in ('pause', 'off_today') then
+  if p_kind not in ('pause', 'off_today', 'pacing_bypass_day', 'pacing_bypass_week') then
     raise exception 'unknown override kind: %', p_kind using errcode = 'invalid_parameter_value';
   end if;
   if p_via not in ('dashboard', 'telegram') then
@@ -32,6 +32,12 @@ begin
       raise exception 'pause minutes must be between 1 and 1440' using errcode = 'invalid_parameter_value';
     end if;
     v_expires := now() + make_interval(mins => p_minutes);
+  elsif p_kind = 'pacing_bypass_week' then
+    -- until the weekly usage window resets; without a live snapshot, seven days
+    select seven_day_resets_at into v_expires from public.usage_snapshots order by at desc limit 1;
+    if v_expires is null or v_expires <= now() then
+      v_expires := now() + interval '7 days';
+    end if;
   else
     select coalesce(value #>> '{}', 'Europe/Berlin') into v_tz from public.settings where key = 'timezone';
     begin

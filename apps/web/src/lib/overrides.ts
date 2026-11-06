@@ -37,5 +37,12 @@ export function overrideChip(
   }
 
   if (overrides.some((o) => o.kind === 'off_today')) parts.push('Off today');
+
+  if (overrides.some((o) => o.kind === 'pacing_bypass_week'))
+    parts.push('Weekly pacing ignored until the week resets');
+  else {
+    const day = newest(overrides.filter((o) => o.kind === 'pacing_bypass_day'));
+    if (day) parts.push(`Weekly pacing ignored until ${format(day.expires_at)}`);
+  }
   return parts.join(' · ');
 }

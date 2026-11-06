@@ -8,14 +8,20 @@ export interface HandlerStore {
     decision: 'approve' | 'dismiss',
     via: 'telegram',
   ): Promise<{ first: boolean; decision: string }>;
-  setOverride(kind: 'pause' | 'off_today', minutes: number | null, via: 'telegram'): Promise<void>;
+  setOverride(
+    kind: 'pause' | 'off_today' | 'pacing_bypass_day' | 'pacing_bypass_week',
+    minutes: number | null,
+    via: 'telegram',
+  ): Promise<void>;
   setMode(
     kind: 'working' | 'stop' | 'sleeping' | 'custom',
     minutes: number | null,
     capPct: number | null,
     via: 'telegram',
   ): Promise<void>;
-  clearOverride(kind: 'pause' | 'off_today' | 'stop'): Promise<number>;
+  clearOverride(
+    kind: 'pause' | 'off_today' | 'stop' | 'pacing_bypass_day' | 'pacing_bypass_week',
+  ): Promise<number>;
   status(): Promise<{
     workerOnline: boolean;
     workerLastSeenMinutes: number | null;
@@ -45,6 +51,8 @@ const HELP = [
   '/resume: end a pause or stop',
   '/off: "I\'m off today", only critical alerts until midnight',
   '/on: end "off today"',
+  '/nopacing day|week: ignore the weekly pacing for today or this week (the 90% ceiling still applies)',
+  '/pacing: turn the weekly pacing back on',
 ].join('\n');
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -187,6 +195,27 @@ export function createHandler(deps: HandlerDeps) {
               : 'You were not off today.',
           );
           break;
+        case 'nopacing':
+          await store.setOverride(
+            command.scope === 'day' ? 'pacing_bypass_day' : 'pacing_bypass_week',
+            null,
+            'telegram',
+          );
+          await reply(
+            command.scope === 'day'
+              ? '🚀 Weekly pacing ignored for today (until midnight). Only the 90% weekly ceiling still stops work. /pacing to undo.'
+              : '🚀 Weekly pacing ignored until the weekly window resets. Only the 90% weekly ceiling still stops work. /pacing to undo.',
+          );
+          break;
+        case 'pacing': {
+          const cleared =
+            (await store.clearOverride('pacing_bypass_day')) +
+            (await store.clearOverride('pacing_bypass_week'));
+          await reply(
+            cleared > 0 ? '🐢 Weekly pacing is back on.' : 'The weekly pacing was already on.',
+          );
+          break;
+        }
         case 'invalid':
           await reply(escapeHtml(command.reason));
           break;

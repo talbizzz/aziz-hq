@@ -31,7 +31,17 @@ export interface UsageSnapshot {
 }
 
 export interface PolicyOverride {
-  kind: 'pause' | 'stop' | 'working' | 'sleeping' | 'custom' | 'off_today' | 'limit';
+  kind:
+    | 'pause'
+    | 'stop'
+    | 'working'
+    | 'sleeping'
+    | 'custom'
+    | 'off_today'
+    | 'limit'
+    /** "Ignore the weekly pacing" until local midnight / until the weekly window resets. */
+    | 'pacing_bypass_day'
+    | 'pacing_bypass_week';
   /** Only for `custom`. */
   capPct: number | null;
   createdAt: Date;
@@ -151,8 +161,12 @@ export function evaluateUsagePolicy(input: PolicyInput): PolicyDecision {
     reason = 'work_hours';
   }
 
-  // 4. Weekly pacing guards normal operation; explicit overrides ("only the ceiling always applies") bypass it.
-  if (sevenDayLive && !mode && !offToday) {
+  // 4. Weekly pacing slows everything down, including modes and "off today". Only an explicit pacing bypass
+  //    (today or this week) lifts it; the hard ceiling above still applies to the bypass.
+  const bypassPacing = active.some(
+    (o) => o.kind === 'pacing_bypass_day' || o.kind === 'pacing_bypass_week',
+  );
+  if (sevenDayLive && !bypassPacing) {
     const elapsedPct =
       Math.min(
         1,

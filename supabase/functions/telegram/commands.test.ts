@@ -69,3 +69,21 @@ describe('parseCommand: usage modes (milestone 4)', () => {
     }
   });
 });
+
+describe('parseCommand: weekly pacing bypass', () => {
+  it('parses /nopacing day|today|week and /pacing', () => {
+    expect(parseCommand('/nopacing day')).toEqual({ name: 'nopacing', scope: 'day' });
+    expect(parseCommand('/nopacing today')).toEqual({ name: 'nopacing', scope: 'day' });
+    expect(parseCommand('/NoPacing@my_bot WEEK')).toEqual({ name: 'nopacing', scope: 'week' });
+    expect(parseCommand('/pacing')).toEqual({ name: 'pacing' });
+  });
+
+  it('refuses /nopacing without an explicit scope, with a usage hint', () => {
+    for (const text of ['/nopacing', '/nopacing month', '/nopacing 2h']) {
+      expect(parseCommand(text), text).toEqual({
+        name: 'invalid',
+        reason: expect.stringContaining('/nopacing day'),
+      });
+    }
+  });
+});

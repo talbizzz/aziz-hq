@@ -1,7 +1,7 @@
 -- Milestone 3, contract C1: manual overrides. Active = not cleared and not expired (expiry needs no job).
 create table public.overrides (
   id uuid primary key default gen_random_uuid(),
-  kind text not null check (kind in ('pause', 'off_today', 'working', 'stop', 'sleeping', 'custom', 'limit')),
+  kind text not null check (kind in ('pause', 'off_today', 'working', 'stop', 'sleeping', 'custom', 'limit', 'pacing_bypass_day', 'pacing_bypass_week')),
   expires_at timestamptz not null,
   created_by text not null check (created_by in ('dashboard', 'telegram', 'system')),
   created_at timestamptz not null default now(),

@@ -10,13 +10,17 @@ export type Command =
         | 'working'
         | 'stop'
         | 'sleeping'
+        | 'pacing'
         | 'unknown';
     }
   | { name: 'pause'; minutes: number }
   | { name: 'custom'; capPct: number; minutes: number }
+  | { name: 'nopacing'; scope: 'day' | 'week' }
   | { name: 'invalid'; reason: string };
 
 const CUSTOM_USAGE = 'Use /custom <cap 0-100> <duration 1m-24h>, e.g. /custom 70 2h.';
+const NOPACING_USAGE =
+  'Say how long to ignore the weekly pacing: /nopacing day or /nopacing week (the 90% ceiling still applies).';
 const PAUSE_USAGE = 'Duration must be between 1 minute and 24 hours, e.g. /pause 90m or /pause 2h.';
 
 export function parseCommand(text: string): Command {
@@ -35,7 +39,14 @@ export function parseCommand(text: string): Command {
     case 'working':
     case 'stop':
     case 'sleeping':
+    case 'pacing':
       return { name };
+    case 'nopacing': {
+      const scope = (rest[0] ?? '').toLowerCase();
+      if (scope === 'day' || scope === 'today') return { name: 'nopacing', scope: 'day' };
+      if (scope === 'week') return { name: 'nopacing', scope: 'week' };
+      return { name: 'invalid', reason: NOPACING_USAGE };
+    }
     case 'custom': {
       const cap = /^(\d{1,3})%?$/.exec(rest[0] ?? '');
       const duration = /^(\d+)([mh]?)$/i.exec(rest[1] ?? '');

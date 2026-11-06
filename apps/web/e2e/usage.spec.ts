@@ -63,6 +63,31 @@ test('the header mode menu sets working, stop, sleeping and custom modes', async
   expect((await service.from('active_overrides').select('kind')).data).toEqual([]);
 });
 
+test('the weekly pacing can be ignored for today or the week, then restored', async ({ page }) => {
+  await loginAsOwner(page);
+  const chip = page.getByTestId('override-chip');
+
+  await page.getByText('Mode', { exact: true }).click();
+  await page.getByTestId('pacing-bypass-day').click();
+  await expect(chip).toContainText('Weekly pacing ignored until');
+  expect(
+    (
+      await service
+        .from('active_overrides')
+        .select('kind, created_by')
+        .eq('kind', 'pacing_bypass_day')
+    ).data,
+  ).toEqual([{ kind: 'pacing_bypass_day', created_by: 'dashboard' }]);
+
+  await page.getByText('Mode', { exact: true }).click();
+  await page.getByTestId('pacing-bypass-week').click();
+  await expect(chip).toContainText('Weekly pacing ignored until the week resets');
+
+  await page.getByTestId('pacing-restore').click();
+  await expect(chip).toHaveCount(0);
+  expect((await service.from('active_overrides').select('kind')).data).toEqual([]);
+});
+
 test('the usage panel shows the windows and the policy decision, live', async ({ page }) => {
   await service.rpc('record_usage_snapshot', {
     p_source: 'rate_limit_event',

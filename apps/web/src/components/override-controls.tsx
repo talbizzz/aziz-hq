@@ -57,6 +57,23 @@ export function OverrideControls() {
       }),
     );
   };
+  const setPacingBypass = (scope: 'day' | 'week') => {
+    if (modeMenu.current) modeMenu.current.open = false;
+    change.mutate(() =>
+      supabase.rpc('set_override', {
+        p_kind: scope === 'day' ? 'pacing_bypass_day' : 'pacing_bypass_week',
+        p_via: 'dashboard',
+      }),
+    );
+  };
+  const restorePacing = () =>
+    change.mutate(async () => {
+      for (const kind of ['pacing_bypass_day', 'pacing_bypass_week']) {
+        const { error } = await supabase.rpc('clear_override', { p_kind: kind });
+        if (error) return { error };
+      }
+      return { error: null };
+    });
   const clearModes = () =>
     change.mutate(async () => {
       for (const kind of ['working', 'sleeping', 'stop', 'custom']) {
@@ -66,6 +83,9 @@ export function OverrideControls() {
       return { error: null };
     });
 
+  const bypassActive = overrides.some((o) =>
+    ['pacing_bypass_day', 'pacing_bypass_week'].includes(o.kind),
+  );
   const chip = overrideChip(overrides);
   const modeActive = overrides.some((o) =>
     ['working', 'sleeping', 'stop', 'custom'].includes(o.kind),
@@ -176,11 +196,37 @@ export function OverrideControls() {
               Set
             </Button>
           </div>
+          <div className="mt-1 flex flex-col gap-1 border-t pt-2">
+            <span className="px-2 text-xs text-muted-foreground">
+              Weekly pacing: ignore it and work up to the weekly ceiling
+            </span>
+            <button
+              type="button"
+              className="rounded px-2 py-1.5 text-left hover:bg-accent"
+              data-testid="pacing-bypass-day"
+              onClick={() => setPacingBypass('day')}
+            >
+              Ignore weekly pacing today
+            </button>
+            <button
+              type="button"
+              className="rounded px-2 py-1.5 text-left hover:bg-accent"
+              data-testid="pacing-bypass-week"
+              onClick={() => setPacingBypass('week')}
+            >
+              Ignore weekly pacing this week
+            </button>
+          </div>
         </div>
       </details>
       {modeActive && (
         <Button variant="outline" size="sm" data-testid="override-clear-modes" onClick={clearModes}>
           Clear mode
+        </Button>
+      )}
+      {bypassActive && (
+        <Button variant="outline" size="sm" data-testid="pacing-restore" onClick={restorePacing}>
+          Restore pacing
         </Button>
       )}
       <label className="flex items-center gap-2">
