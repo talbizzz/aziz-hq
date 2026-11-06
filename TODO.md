@@ -12,15 +12,15 @@
 
 ## Milestone 1: Foundation
 
-> Built autonomously 2026-11-05: everything that needs no owner account is done and CI is green on `main`. **Open, owner-only:** branch protection and required checks (T1.3, T1.7), the hosted Supabase project, secrets and owner user (T1.9), Access, domain and `DEPLOY_ENABLED` (T1.11), keepalive dispatch (T1.12). Steps: `docs/runbooks/m1-manual-steps.md`.
+> Built autonomously 2026-11-05: everything that needs no owner account is done and CI is green on `main`. **Open, owner-only:** the hosted Supabase project, secrets and owner user (T1.9), Access, domain and `DEPLOY_ENABLED` (T1.11), keepalive dispatch (T1.12). Steps: `docs/runbooks/m1-manual-steps.md`.
 
 - [x] T1.1 — Monorepo scaffold, tooling, CLAUDE.md, gitleaks
 - [x] T1.2 — Module-boundary lint rule with fixture test
-- [ ] T1.3 — CI baseline (typecheck, lint, test) (CI green on main, red-then-green shown in docs/ci-failure-demos.md; only Aziz's branch-protection approval is open)
+- [x] T1.3 — CI baseline (typecheck, lint, test) (done 2026-11-06: CI green, red-then-green in docs/ci-failure-demos.md; repo made public by Aziz so branch protection is available; protection active on main)
 - [x] T1.4 — Local Supabase setup and DB scripts
 - [x] T1.5 — Core schema (declarative) with pgTAP tests
 - [x] T1.6 — Owner model, RLS policies and event triggers with pgTAP tests
-- [ ] T1.7 — Drift check, pgTAP and type-generation checks in CI (database job green on main; drift and types red demos in docs/ci-failure-demos.md; only making it required in branch protection is open)
+- [x] T1.7 — Drift check, pgTAP and type-generation checks in CI (database job green on main; drift and types red demos in docs/ci-failure-demos.md; branch protection now requires the four checks, 2026-11-06)
 - [x] T1.8 — Core Zod schemas matching DB enums
 - [ ] T1.9 — Hosted platform Supabase project (manual + scripted) (deploy.yml, verify-hosted.ts, runbook done; needs Aziz: Supabase project, secrets, owner user)
 - [x] T1.10 — Dashboard skeleton: login, MFA, Access JWT check, empty shell
