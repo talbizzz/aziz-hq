@@ -230,9 +230,21 @@ export function createHandler(deps: HandlerDeps) {
 
   bot.catch((e) => log(`handler error: ${errorText(e.error)}`));
 
+  const inner = webhookCallback(bot, 'std/http', { secretToken: deps.secret }) as (
+    req: Request,
+  ) => Promise<Response>;
+
   return {
-    handle: webhookCallback(bot, 'std/http', { secretToken: deps.secret }) as (
-      req: Request,
-    ) => Promise<Response>,
+    // grammY's bot.catch does not apply to webhooks: an error thrown while handling an update (e.g. Telegram rejects
+    // answerCallbackQuery for a stale button) would become a 500, and Telegram redelivers a 500 over and over.
+    // Past the secret check every update is acknowledged; decisions are idempotent, so nothing is lost.
+    handle: async (req: Request): Promise<Response> => {
+      try {
+        return await inner(req);
+      } catch (e) {
+        log(`update failed: ${errorText(e)}`);
+        return new Response('ok', { status: 200 });
+      }
+    },
   };
 }
