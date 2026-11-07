@@ -12,13 +12,21 @@ const HEX = GATE.replace(/-/g, '');
 let api: Server;
 let apiRoot = '';
 let calls: { method: string; body: Record<string, unknown> }[] = [];
+// methods the mock Telegram rejects (like a stale callback query: "query is too old")
+const failing = new Set<string>();
 beforeAll(async () => {
   api = createServer((req, res) => {
     let b = '';
     req.on('data', (c) => (b += c));
     req.on('end', () => {
-      calls.push({ method: req.url!.split('/').pop()!, body: b ? JSON.parse(b) : {} });
+      const method = req.url!.split('/').pop()!;
+      calls.push({ method, body: b ? JSON.parse(b) : {} });
       res.setHeader('content-type', 'application/json');
+      if (failing.has(method)) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ ok: false, error_code: 400, description: 'query is too old' }));
+        return;
+      }
       res.end(JSON.stringify({ ok: true, result: { message_id: 1 } }));
     });
   });
@@ -55,6 +63,7 @@ let logs: string[];
 beforeEach(() => {
   calls = [];
   logs = [];
+  failing.clear();
 });
 const hook = (store: HandlerStore, over: { ownerChatId?: number } = {}) =>
   createHandler({
@@ -170,6 +179,20 @@ describe('decisions', () => {
     const edit = calls.find((c) => c.method === 'editMessageText')!.body;
     expect(edit.text).toContain('✅ Approved');
     expect(edit.reply_markup).toEqual({ inline_keyboard: [] });
+  });
+  it('answers 200 even when Telegram rejects the answer (a stale button), so it is not redelivered', async () => {
+    const { store, decided } = memStore();
+    failing.add('answerCallbackQuery');
+    const res = await post(hook(store).handle, cb(`g:${HEX}:a`), SECRET);
+    expect(res.status).toBe(200);
+    expect(decided.get(GATE)).toBe('approve');
+    expect(logs.some((l) => /update failed/i.test(l))).toBe(true);
+  });
+  it('answers 200 when a command reply cannot be sent', async () => {
+    const { store } = memStore();
+    failing.add('sendMessage');
+    expect((await post(hook(store).handle, msg('/status'), SECRET)).status).toBe(200);
+    expect(logs.some((l) => /update failed/i.test(l))).toBe(true);
   });
   it('records dismiss', async () => {
     const { store } = memStore();
