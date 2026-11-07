@@ -1,3 +1,4 @@
+import { redactSecrets } from '@aziz-hq/core';
 import type { Task, TaskSpec, PolicyOverride, UsageSnapshot } from '@aziz-hq/core';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { RunRecorder, WorkerEngine } from './engine.js';
@@ -57,6 +58,28 @@ export function createPolicyDb(db: Db): PolicyDb {
 
 export interface TranscriptSink {
   save(entry: { runId: string; taskId: string; attempt: number; text: string }): Promise<void>;
+}
+
+/** Object layout in the private `transcripts` bucket (T4.8). */
+export const transcriptPath = (e: { runId: string; taskId: string; attempt: number }) =>
+  `${e.runId}/${e.taskId}/attempt-${e.attempt}.txt`;
+
+/**
+ * Stores transcripts in Supabase Storage with the service client. The runner already redacts; the text is redacted
+ * again here so no code path can upload a raw stream. A retry of the same attempt replaces the object.
+ */
+export function createStorageTranscriptSink(db: Db): TranscriptSink {
+  return {
+    async save(entry) {
+      const { error } = await db.storage
+        .from('transcripts')
+        .upload(transcriptPath(entry), redactSecrets(entry.text), {
+          contentType: 'text/plain',
+          upsert: true,
+        });
+      if (error) throw new Error(`transcript upload: ${error.message}`);
+    },
+  };
 }
 
 /** The blocking escalation gate opened when a task fails for good (milestone 4, C5). */

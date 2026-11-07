@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { task } from './test-helpers.js';
-import { createRunRecorder, escalationGate } from './supabase-adapters.js';
+import {
+  createRunRecorder,
+  createStorageTranscriptSink,
+  escalationGate,
+  transcriptPath,
+} from './supabase-adapters.js';
 
 describe('escalationGate', () => {
   it('builds a blocking escalation gate with the evidence and approve/dismiss options', () => {
@@ -117,5 +122,52 @@ describe('createRunRecorder', () => {
       engine: { createTaskGraph: vi.fn() } as never,
     });
     await expect(quiet.transcript(task(), 'text')).resolves.toBeUndefined();
+  });
+});
+
+describe('the Storage transcript sink', () => {
+  const entry = { runId: 'run-1', taskId: 'task-1', attempt: 2, text: 'hello' };
+  const storageDb = (upload: ReturnType<typeof vi.fn>) =>
+    ({ storage: { from: vi.fn(() => ({ upload })) } }) as never;
+
+  it('lays objects out as <run>/<task>/attempt-<n>.txt', () => {
+    expect(transcriptPath(entry)).toBe('run-1/task-1/attempt-2.txt');
+  });
+
+  it('uploads to the private transcripts bucket as text, replacing a retry of the same attempt', async () => {
+    const upload = vi.fn(async () => ({ data: {}, error: null }));
+    const db = storageDb(upload);
+    await createStorageTranscriptSink(db).save(entry);
+    expect(
+      (db as never as { storage: { from: ReturnType<typeof vi.fn> } }).storage.from,
+    ).toHaveBeenCalledWith('transcripts');
+    expect(upload).toHaveBeenCalledWith('run-1/task-1/attempt-2.txt', 'hello', {
+      contentType: 'text/plain',
+      upsert: true,
+    });
+  });
+
+  it('redacts secrets again before uploading (defence in depth)', async () => {
+    const upload = vi.fn<(path: string, body: string) => Promise<{ data: object; error: null }>>(
+      async () => ({
+        data: {},
+        error: null,
+      }),
+    );
+    const secret = 'sk-ant-api03-' + 'A1b2C3d4'.repeat(8);
+    await createStorageTranscriptSink(storageDb(upload)).save({
+      ...entry,
+      text: `key is ${secret} ok`,
+    });
+    const uploaded = upload.mock.calls[0]![1] as string;
+    expect(uploaded).not.toContain(secret);
+    expect(uploaded).toContain('ok');
+  });
+
+  it('throws when Storage refuses (the executor logs it and never fails the task for it)', async () => {
+    const upload = vi.fn(async () => ({ data: null, error: { message: 'bucket not found' } }));
+    await expect(createStorageTranscriptSink(storageDb(upload)).save(entry)).rejects.toThrow(
+      'transcript upload: bucket not found',
+    );
   });
 });
