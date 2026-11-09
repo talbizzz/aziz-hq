@@ -198,6 +198,11 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 - **Depends on:** T4.7
 - **What:** productionise `spikes/s2` (slim per-task Supabase stack, ports +100 per slot, `docker update` limits, agent container without `docker.sock`, allowlist proxy, `docker rm -v`, worktree, push-only egress), pin the Supabase CLI version in the image, repeat on the VPS in M8. Needs Docker headroom and supervised measurement (RAM under load).
 - **Tests (write first):** `scripts`-level checks from `spikes/s2/check.sh` adapted; integration with a FakeRunner task that must fail to reach the network and succeed to push.
+
+> **Open decision (2026-11-09, from T4.9; Project-Plan risk 10):** how the Claude login reaches the agent container. T4.9 only exercised the macOS login (Keychain, needs `USER`). In this task, on a Linux container: (1) check that the login is a file under `CLAUDE_CONFIG_DIR` and that `claude -p` works with the minimal environment; (2) try `claude setup-token` and `claude auth login` without a browser, and record the token's lifetime and how it is supplied (file or environment); (3) choose between a read-only mount of the credential and a proxy outside the container that adds it, and add an integration check that the container cannot reach anything but the allowlist and that no platform secret is visible in it. Record the result in `docs/spikes/FINDINGS.md`.
+
+- **Also here:** confirm the Anthropic terms for subscription use on a server (risk 6) before M8.
+
 - **Done when:** a task runs end to end in the sandbox; limits and cleanup verified (no leaked volumes).
 
 ### T4.11 — Nightly backup and tested restore **[live: needs R2]**
