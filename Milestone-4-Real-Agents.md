@@ -188,6 +188,9 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 
 - **Depends on:** T4.6, T4.7
 - **What:** run `ClaudeCodeSubscriptionRunner` with the real `claude` on a tiny, throwaway task (a script in a temp repo) on the owner's machine, with `CLAUDE_CONFIG_DIR` set for the worker login; record the stream as new fixtures; replace DOCUMENTED fixtures where possible. Consumes plan quota: ask first, run in sleeping hours.
+
+> **Plan updated (implementation, 2026-11-09):** run on the owner's own login (no separate `CLAUDE_CONFIG_DIR` yet) with `apps/worker/scripts/live-claude-run.ts`, which calls the runner directly in a throwaway git repo and touches no database; the run used Haiku, 3 turns, and only the `Write` tool (about $0.003). Not done in this step: a run through the worker with the transcript stored in Storage, and the separate worker login. The first attempt failed with "Not logged in" because the runner did not pass `USER` (fixed, see FINDINGS S1). The plan limit cannot be captured live without exhausting the plan, so that fixture stays documented.
+
 - **Done when:** transcript and usage recorded, fixtures captured, FINDINGS S1/S5 updated.
 
 ### T4.10 — Per-task Docker sandbox (A-prime) **[live]**

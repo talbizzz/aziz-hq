@@ -72,3 +72,16 @@ describe('extractResetsAt', () => {
     expect(extractResetsAt('')).toBeNull();
   });
 });
+
+describe('live captures (T4.9, 2026-11-09, claude 2.1.312)', () => {
+  const live = (name: string) =>
+    readFileSync(new URL(`../../test/fixtures/${name}`, import.meta.url), 'utf8');
+
+  it('a real "Not logged in" stream (exit 1) is classified as auth', () => {
+    expect(classifyClaudeFailure(1, live('live-auth-failure-2026-11-09.jsonl'), '')).toBe('auth');
+  });
+
+  it('a real successful stream (exit 0) is neither a limit nor an auth failure', () => {
+    expect(classifyClaudeFailure(0, live('live-write-run-2026-11-09.jsonl'), '')).toBe('other');
+  });
+});

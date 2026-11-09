@@ -27,6 +27,12 @@ Versions: `claude` 2.1.312; Colima 0.10.3 (Docker server 29.5.2; Docker CLI 29.8
 - **Decision for the plan:** Usage policy (M4) uses the `rate_limit_event` from `stream-json` as the primary source; the worker runs `claude -p --output-format stream-json --verbose`. Fallback if the event is missing: cost-based estimate (`total_cost_usd`) plus limit-error detection (S5). Use `CLAUDE_CONFIG_DIR` to give the worker its own login/session state; it does not give it separate quota. Project-Plan pre-mortem #2 and the M4 stub should say this (applied in T0.7).
 - **Open follow-ups:** The event schema is undocumented and may change between versions: pin/record the `claude` version and treat a missing event as a warning (M4). Check whether the event is emitted when the 5h window is near full or blocked (S5, T0.3).
 
+> **Updated by T4.9 (2026-11-09, `claude` 2.1.312, Haiku, first live run through `ClaudeCodeSubscriptionRunner`):**
+>
+> - The `stream-json` shape and the `rate_limit_event` read by the parser match a real run that used the `Write` tool (usage, cost, model, both windows; fixture `packages/agents-sdk/test/fixtures/live-write-run-2026-11-09.jsonl`, sanitized).
+> - **macOS login needs `USER` in the environment.** The runner starts `claude` with a minimal environment; without `USER` the run answers "Not logged in" (found live, tested by hand: `LOGNAME` does not help). `USER` is now in the runner's allow-list. On Linux (the VPS, M8) the login is a file under the config dir, so this should not matter there, but check it in M8.
+> - A tiny task (create one file, 3 turns max, `--model haiku`, only the `Write` tool allowed) took 4 s and cost about $0.003 list price, far below the ~$0.06 per-call baseline measured in S1 with the default model.
+
 ## S5: What does `claude -p` do when a plan limit is hit mid-task?
 - **Verdict:** CONFIRMED WITH CHANGES (detection design confirmed against documentation only; the live limit-hit test was declined by Aziz on 2026-11-02 and is **unverified**)
 - **Evidence:** [documented fixtures](evidence/) `S5-fixture-*.txt` (all marked DOCUMENTED, none captured live, except `S5-fixture-ok-stream.txt` which has the real S1 event shape); classifier and tests in `spikes/s5/` (10 tests passing).
@@ -39,6 +45,8 @@ Versions: `claude` 2.1.312; Colima 0.10.3 (Docker server 29.5.2; Docker CLI 29.8
   - Classifier `classifyClaudeFailure(exitCode, stdout, stderr) -> 'limit' | 'auth' | 'other'` uses: any non-allowed `rate_limit_event` window, else (non-zero exit OR `is_error:true`) AND text matching the pattern lists. Unknown failures return `other`.
 - **Decision for the plan:** M4's runner uses `stream-json`, classifies with this function (pattern lists configurable), and on `limit` pauses until `resetsAt` (from the event) or, if absent, 30 min; on repeated unknown failures (N tries) treat as "possible limit" and pause 30 min rather than fail the task. Before pausing/retrying, the runner resets or discards the task worktree to the last commit. **Before M8**, run one live limit-hit capture (Aziz's go-ahead, sleeping hours) and replace the DOCUMENTED fixtures with real ones.
 - **Open follow-ups:** Live capture of the real blocked-state event/exit code/message and of the call during and after the blocked period (owner: M4 detailing or M8 start). Mid-task kill behaviour with a real limit.
+
+> **Updated by T4.9 (2026-11-09):** the auth failure is now captured live (`live-auth-failure-2026-11-09.jsonl`): exit code 1; an `assistant` event with `error: "authentication_failed"` and the text "Not logged in · Please run /login"; a `result` event with `is_error: true` and `subtype: "success"`. The classifier maps it to `auth`. The plan-limit shape is still documented only and unverified.
 
 ## S2: Can a per-task Docker sandbox run `supabase start`, tests and `git push`?
 - **Verdict:** CONFIRMED WITH CHANGES (macOS/Colima leg only; Linux/VPS leg re-run at M8 start)

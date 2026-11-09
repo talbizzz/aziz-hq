@@ -91,3 +91,34 @@ describe('parseClaudeStream edge cases', () => {
     expect(parseClaudeStream(out).usage?.model).toBe('big');
   });
 });
+
+describe('parseClaudeStream on a live run that wrote a file (T4.9, 2026-11-09, claude 2.1.312, haiku)', () => {
+  const live = readFileSync(
+    new URL('../../test/fixtures/live-write-run-2026-11-09.jsonl', import.meta.url),
+    'utf8',
+  );
+  const parsed = parseClaudeStream(live);
+
+  it('reads usage, cost and the model from the result event', () => {
+    expect(parsed.usage).toMatchObject({
+      inputTokens: 4,
+      outputTokens: 281,
+      cacheReadTokens: 29897,
+      cacheWriteTokens: 14871,
+      model: 'claude-haiku-5-5',
+    });
+    expect(parsed.usage!.costUsd).toBeCloseTo(0.00341407, 8);
+  });
+
+  it('reads both rate-limit windows as percentages', () => {
+    expect(parsed.rateLimit).toEqual({
+      fiveHour: { pct: 19, resetsAt: new Date('2026-11-09T18:40:00.000Z'), status: 'allowed' },
+      sevenDay: { pct: 17, resetsAt: new Date('2026-11-15T04:00:00.000Z'), status: 'allowed' },
+    });
+  });
+
+  it('finds a successful result', () => {
+    expect(parsed.result?.isError).toBe(false);
+    expect(parsed.result?.text).toContain('hello.js');
+  });
+});

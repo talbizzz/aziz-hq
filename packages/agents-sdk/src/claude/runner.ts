@@ -28,7 +28,8 @@ export interface ClaudeRunnerOptions {
   maxOutputBytes?: number;
 }
 
-const DEFAULT_ENV_ALLOW = ['PATH', 'HOME', 'LANG', 'TERM', 'TMPDIR'];
+// USER is not a secret: on macOS Claude Code reads its login from the Keychain under that name (found by the first live run).
+const DEFAULT_ENV_ALLOW = ['PATH', 'HOME', 'USER', 'LANG', 'TERM', 'TMPDIR'];
 const SUMMARY_LIMIT = 2000;
 
 async function defaultReadDiff(workdir: string): Promise<string> {

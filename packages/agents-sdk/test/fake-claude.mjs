@@ -15,6 +15,7 @@ if (env.FAKE_CLAUDE_ARGS_FILE) {
       argv: process.argv.slice(2),
       cwd: process.cwd(),
       configDir: env.CLAUDE_CONFIG_DIR ?? null,
+      envKeys: Object.keys(env),
       pid: process.pid,
     }),
   );

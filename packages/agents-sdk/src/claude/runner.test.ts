@@ -80,6 +80,19 @@ describe('ClaudeCodeSubscriptionRunner (against a fake claude CLI replaying reco
     expect(seen.configDir).toBe('/tmp/claude-config-test');
   });
 
+  it('passes USER (the macOS login lookup needs it) but none of the platform secrets', async () => {
+    process.env.USER ||= 'tester';
+    process.env.SUPABASE_SECRET_KEY = 'must-not-leak';
+    try {
+      await runner({ FAKE_CLAUDE_FIXTURE: STREAM }).run(input());
+    } finally {
+      delete process.env.SUPABASE_SECRET_KEY;
+    }
+    const seen = JSON.parse(readFileSync(argsFile, 'utf8')) as { envKeys: string[] };
+    expect(seen.envKeys).toContain('USER');
+    expect(seen.envKeys).not.toContain('SUPABASE_SECRET_KEY');
+  });
+
   it('turns a blocked rate-limit stream into a limit result with the reset time (a pause, not a failure)', async () => {
     const result = await runner({ FAKE_CLAUDE_FIXTURE: LIMIT, FAKE_CLAUDE_EXIT: '1' }).run(input());
     expect(result).toMatchObject({ status: 'limit' });

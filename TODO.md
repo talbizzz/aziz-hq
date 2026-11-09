@@ -70,7 +70,7 @@
 - [x] T4.6 — ClaudeCodeSubscriptionRunner against a recorded CLI [local]
 - [x] T4.7 — Worker integration: policy, limit handling, usage, transcripts [local]
 - [x] T4.8 — Transcript storage and Storage RLS [local] (bucket + owner-read policy, StorageTranscriptSink wired into the worker; pgTAP, unit and Storage integration tests green; hosted migration applies on merge)
-- [ ] T4.9 — First real agent run [live: needs Aziz's go-ahead]
+- [x] T4.9 — First real agent run [live] (done 2026-11-09 with the owner's go-ahead: a tiny Haiku task through the runner, ~$0.003; fixtures captured, FINDINGS updated; found and fixed the macOS USER login bug. Open: a full worker run with transcript storage and the separate worker login)
 - [ ] T4.10 — Per-task Docker sandbox (A-prime) [live]
 - [ ] T4.11 — Nightly backup and tested restore [live: needs R2]
 - [x] T4.12 — Dashboard and Telegram for the new overrides [local]
