@@ -201,6 +201,8 @@ New RPC (service_role): `release_for_limit(p_task_id uuid, p_worker_id text, p_r
 
 > **Open decision (2026-11-09, from T4.9; Project-Plan risk 10):** how the Claude login reaches the agent container. T4.9 only exercised the macOS login (Keychain, needs `USER`). In this task, on a Linux container: (1) check that the login is a file under `CLAUDE_CONFIG_DIR` and that `claude -p` works with the minimal environment; (2) try `claude setup-token` and `claude auth login` without a browser, and record the token's lifetime and how it is supplied (file or environment); (3) choose between a read-only mount of the credential and a proxy outside the container that adds it, and add an integration check that the container cannot reach anything but the allowlist and that no platform secret is visible in it. Record the result in `docs/spikes/FINDINGS.md`.
 
+> **Result of steps 1 and 2 (2026-11-09, see FINDINGS S1):** `setup-token` works headless on Linux with the token as the only credential, and a hardened container (non-root, read-only root) runs `claude -p`. Step 3 is still open and its input has changed: **the agent can read the token from the Claude process inside the same container**, so a plain env var or mount is only acceptable together with the token-in-diff guard and the egress allowlist; the proxy outside the container is the stronger option and must be tried before M8. Not tested: `claude auth login` without a browser, a config-dir login, and an egress allowlist.
+
 - **Also here:** confirm the Anthropic terms for subscription use on a server (risk 6) before M8.
 
 - **Done when:** a task runs end to end in the sandbox; limits and cleanup verified (no leaked volumes).
