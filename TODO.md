@@ -58,7 +58,7 @@
 - [x] T3.8 — Dashboard: overrides, off-today, settings
 - [x] T3.9 — Daily digest and delivery policy end to end
 - [x] T3.10 — CI wiring and docs
-- [ ] T3.11 — Live verification [Aziz] (needs the hosted project from M1 T1.9)
+- [x] T3.11 — Live verification [Aziz] (mostly done 2026-11-07/09, evidence in docs/spikes/evidence/M3-live-telegram.md; open: latency numbers, a second real account, digest confirmation. Found and fixed pg_net missing on hosted and a 500 on rejected callbacks)
 
 ## Milestone 4: Real-Agents
 

@@ -24,9 +24,24 @@ Date: 2026-11-07. Project: hosted Supabase (free plan). Bot: a fresh bot created
 
 Also noted: the gate stays `pending` until a scheduler tick promotes it, and the tick runs inside the worker, so no notification appears until a worker is running (here the tick was run by hand).
 
+## With a real worker on hosted (2026-11-09)
+
+The worker ran as a plain Node process on the owner's Mac against the hosted project, with a separate secret key created for the test (deleted afterwards), scripted `fake` agents only (no plan quota).
+
+| Check | Result |
+| --- | --- |
+| Heartbeat appears within seconds of starting | pass |
+| `fake-run`: parallel tasks, a task that failed once and was retried (2 attempts), then a gate opened by the worker's own scheduler tick | pass |
+| Gate notification delivered to Telegram | pass, 39 s after it was queued (the flush job runs once a minute) |
+| Approve pressed on the phone: decision `approve` via `telegram`; the run continued and finished (`Ship it` done, run `done`) | pass |
+| Worker stopped: exactly one "Worker offline" alert | pass, about 4 min after the stop (3 min threshold plus the 3-minute watchdog cycle) |
+| Worker restarted: exactly one "back online" alert, no repeated offline alert | pass, about 3 min after the restart |
+| `run_done` (priority 0) held for the daily digest, not sent immediately | pass |
+
+Test runs, the heartbeat row and the key file were removed afterwards (the append-only `events` rows remain by design).
+
 ## Not done yet
 
-- Press-to-edit latency over 10 presses (median, p95) and the cold start after 10 idle minutes: only the cold start right after a deploy was seen (about 1.5 s for `/help`; a warm no-op update answers in about 0.2 s).
+- Press-to-edit latency over 10 presses (median, p95), and the cold start after 10 idle minutes. Seen so far: about 1.5 s for the first update right after a deploy, about 0.2 s warm; the owner reports presses as instant.
 - A message from a real second Telegram account (only forged updates were tested).
-- "Worker offline" and "back online" alerts: need a worker running against the hosted project (needs the hosted secret key in the owner's shell).
-- The daily digest at `digest_time`.
+- The daily digest: the `last_digest_date` setting moved to 2026-11-09 at 08:00 Berlin time, so the job ran; whether a message arrived is for the owner to confirm. The `run_done` note from the test run was queued for it.
