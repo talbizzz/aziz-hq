@@ -121,6 +121,22 @@ describe('agentRunArgs (the security rules of the sandbox)', () => {
     expect(args).toEqual(expect.arrayContaining(['--tmpfs']));
     expect(args).toEqual(expect.arrayContaining(['-w', '/work/slot1']));
   });
+  it('mounts extra paths (e.g. a local git remote) only when asked, at the same absolute path', () => {
+    const base = {
+      image: 'i',
+      worktree: '/work/slot1',
+      limits: { memory: '1g', cpus: 1, pids: 1 },
+      proxyUrl: 'p',
+      command: [],
+    };
+    const withExtra = agentRunArgs(plan, { ...base, extraMounts: ['/work/remote.git'] });
+    const mounts = withExtra.flatMap((a, i) => (withExtra[i - 1] === '-v' ? [a] : []));
+    expect(mounts).toEqual(['/work/slot1:/work/slot1', '/work/remote.git:/work/remote.git']);
+    expect(() => agentRunArgs(plan, { ...base, extraMounts: ['/var/run/docker.sock'] })).toThrow(
+      /Docker socket/,
+    );
+    expect(() => agentRunArgs(plan, { ...base, extraMounts: ['relative'] })).toThrow(/absolute/);
+  });
   it("routes web traffic through the proxy and the database to the slot's stack by name", () => {
     expect(flat).toContain('HTTPS_PROXY=http://sbx1-proxy:8888');
     expect(flat).toContain('HTTP_PROXY=http://sbx1-proxy:8888');

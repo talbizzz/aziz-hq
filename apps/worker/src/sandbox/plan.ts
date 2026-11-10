@@ -64,6 +64,8 @@ export interface AgentOptions {
   image: string;
   /** Mounted at the identical absolute path inside the container (spike S2). */
   worktree: string;
+  /** Further read-write mounts (e.g. a local git remote), same absolute path inside. The Docker socket is refused. */
+  extraMounts?: string[];
   limits: AgentLimits;
   proxyUrl: string;
   command: string[];
@@ -75,6 +77,11 @@ const SECRETISH = /SECRET|TOKEN|PASSWORD|_KEY/i;
 
 export function agentRunArgs(plan: SlotPlan, o: AgentOptions): string[] {
   if (!o.worktree.startsWith('/')) throw new Error('worktree must be an absolute path');
+  for (const m of o.extraMounts ?? []) {
+    if (!m.startsWith('/')) throw new Error(`mount must be an absolute path: ${m}`);
+    if (/docker\.sock/.test(m))
+      throw new Error('refusing to mount the Docker socket into the sandbox');
+  }
   const env: Record<string, string> = {
     HTTP_PROXY: o.proxyUrl,
     HTTPS_PROXY: o.proxyUrl,
@@ -116,6 +123,7 @@ export function agentRunArgs(plan: SlotPlan, o: AgentOptions): string[] {
     '/home/agent:rw,size=512m,uid=1000,gid=1000',
     '-v',
     `${o.worktree}:${o.worktree}`,
+    ...(o.extraMounts ?? []).flatMap((m) => ['-v', `${m}:${m}`]),
     '-w',
     o.worktree,
     ...Object.entries(env).flatMap(([k, v]) => ['-e', `${k}=${v}`]),

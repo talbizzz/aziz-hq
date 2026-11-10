@@ -23,6 +23,7 @@ export type Exec = (cmd: string, args: string[]) => Promise<ExecResult>;
 export interface SandboxConfig {
   slot: number;
   worktree: string;
+  extraMounts?: string[];
   agentImage: string;
   proxyImage: string;
   agentLimits: AgentLimits;
@@ -100,6 +101,7 @@ export class Sandbox {
         agentRunArgs(plan, {
           image: config.agentImage,
           worktree: config.worktree,
+          extraMounts: config.extraMounts,
           limits: config.agentLimits,
           proxyUrl: `http://${plan.proxyContainer}:8888`,
           command: ['sleep', 'infinity'],
