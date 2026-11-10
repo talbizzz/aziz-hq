@@ -59,7 +59,7 @@ export class Sandbox {
     const r = await this.exec(cmd, args);
     if (r.code !== 0) {
       throw new Error(
-        `${cmd} ${args.join(' ')} failed (exit ${r.code}): ${r.stderr.trim().slice(0, 500)}`,
+        `${cmd} ${args.join(' ')} failed (exit ${r.code}): ${r.stderr.trim().slice(-1500)}`,
       );
     }
     return r;
